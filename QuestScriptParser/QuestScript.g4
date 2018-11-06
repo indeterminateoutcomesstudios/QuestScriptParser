@@ -1,3 +1,6 @@
+//note : adapted and modified from original to parse TextAdventures Quest script
+// the original, unadapted version is a Javascript parser that can be found here : https://github.com/antlr/grammars-v4/tree/master/javascript
+// keeping the original copyright notice...
 /*
  * The MIT License (MIT)
  *
@@ -27,9 +30,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
- //note : adapted and modified from original to parse TextAdventures Quest script
- // the original, unadapted version is a Javascript parser that can be found here : https://github.com/antlr/grammars-v4/tree/master/javascript
-grammar QuestScript;
+ grammar QuestScript;
 
 options
 {
