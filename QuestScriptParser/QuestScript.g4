@@ -28,7 +28,7 @@
  */
 
  //note : adapted and modified from original to parse TextAdventures Quest script
-
+ // the original, unadapted version is a Javascript parser that can be found here : https://github.com/antlr/grammars-v4/tree/master/javascript
 grammar QuestScript;
 
 options
