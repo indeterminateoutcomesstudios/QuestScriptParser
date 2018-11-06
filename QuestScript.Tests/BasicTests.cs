@@ -18,19 +18,7 @@ namespace QuestScript.Tests
             var scriptTree = parser.script();
 
             Assert.Null(scriptTree.exception);
-            var expectedTree =
-                @"(script 
-                    (statementList 
-                        (statement 
-                            (expressionStatement 
-                                (expressionSequence 
-                                    (singleExpression 
-                                        (singleExpression x) = 
-                                    (singleExpression 
-                                        (literal 
-                                            (numericLiteral 
-                                                (integerLiteral 12)))))) 
-                    (endOfLine <EOF>)))) <EOF>)";
+            var expectedTree = "(script (statementList (statement (expressionStatement (expressionSequence (singleExpression (singleExpression x) = (singleExpression (literal (numericLiteral (integerLiteral 12))))))))) <EOF>)";            
             var generatedTree = scriptTree.ToStringTree(parser);
             ParseTreeHelper.AssertTreesAreEqual(expectedTree,generatedTree);
         }
@@ -42,19 +30,7 @@ namespace QuestScript.Tests
             var scriptTree = parser.script();
 
             Assert.Null(scriptTree.exception);
-            var expectedTree =
-                @"(script 
-                    (statementList 
-                        (statement 
-                            (expressionStatement 
-                                (expressionSequence 
-                                    (singleExpression 
-                                        (singleExpression x) = 
-                                    (singleExpression 
-                                        (literal 
-                                            (numericLiteral 
-                                                (doubleLiteral 12.4)))))) 
-                    (endOfLine <EOF>)))) <EOF>)";
+            var expectedTree ="(script (statementList (statement (expressionStatement (expressionSequence (singleExpression (singleExpression x) = (singleExpression (literal (numericLiteral (doubleLiteral 12.4))))))))) <EOF>)";
             var generatedTree = scriptTree.ToStringTree(parser);
             ParseTreeHelper.AssertTreesAreEqual(expectedTree,generatedTree);
         }
@@ -66,7 +42,7 @@ namespace QuestScript.Tests
             var scriptTree = parser.script();
 
             Assert.Null(scriptTree.exception);
-            var expectedTree ="(script (statementList (statement (expressionStatement (expressionSequence (singleExpression (singleExpression x) = (singleExpression (literal (stringLiteral \"FooBar!\"))))) (endOfLine <EOF>)))) <EOF>)";
+            var expectedTree ="(script (statementList (statement (expressionStatement (expressionSequence (singleExpression (singleExpression x) = (singleExpression (literal (stringLiteral \"FooBar!\")))))))) <EOF>)";
             var generatedTree = scriptTree.ToStringTree(parser);
             ParseTreeHelper.AssertTreesAreEqual(expectedTree,generatedTree);
         }
@@ -78,7 +54,7 @@ namespace QuestScript.Tests
             var scriptTree = parser.script();
 
             Assert.Null(scriptTree.exception);
-            var expectedTree ="(script (statementList (statement (expressionStatement (expressionSequence (singleExpression (singleExpression foobarFunc) (arguments ( )))) (endOfLine <EOF>)))) <EOF>)";
+            var expectedTree ="(script (statementList (statement (expressionStatement (expressionSequence (singleExpression (singleExpression foobarFunc) (arguments ( ))))))) <EOF>)";
             var generatedTree = scriptTree.ToStringTree(parser);
             ParseTreeHelper.AssertTreesAreEqual(expectedTree,generatedTree);
         }
@@ -90,7 +66,7 @@ namespace QuestScript.Tests
             var scriptTree = parser.script();
 
             Assert.Null(scriptTree.exception);
-            var expectedTree ="(script (statementList (statement (expressionStatement (expressionSequence (singleExpression (singleExpression foobarFunc) (arguments ( (singleExpression (literal (numericLiteral (integerLiteral 4)))) , (singleExpression (literal (numericLiteral (integerLiteral 3)))) , (singleExpression (literal (stringLiteral \"mega string!\"))) )))) (endOfLine <EOF>)))) <EOF>)";
+            var expectedTree ="(script (statementList (statement (expressionStatement (expressionSequence (singleExpression (singleExpression foobarFunc) (arguments ( (singleExpression (literal (numericLiteral (integerLiteral 4)))) , (singleExpression (literal (numericLiteral (integerLiteral 3)))) , (singleExpression (literal (stringLiteral \"mega string!\"))) ))))))) <EOF>)";
             var generatedTree = scriptTree.ToStringTree(parser);
             ParseTreeHelper.AssertTreesAreEqual(expectedTree,generatedTree);
         }

@@ -59,12 +59,15 @@
     </Compile>
     <Compile Include="QuestScriptBaseParser.cs" />
     <Compile Include="ParseTreeHelper.cs" />
+    <Compile Include="StringQuestScriptVisitor.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
     <Antlr4 Include="QuestScript.g4">
       <Generator>MSBuild:Compile</Generator>
       <CustomToolNamespace>QuestScriptParser</CustomToolNamespace>
+      <Listener>False</Listener>
+      <Visitor>True</Visitor>
     </Antlr4>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

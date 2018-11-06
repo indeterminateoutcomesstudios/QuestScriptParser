@@ -41,12 +41,12 @@ namespace QuestScriptParser
         public bool NotOpenBrace()
         {
             int nextTokenType = _input.Lt(1).Type;
-            return nextTokenType != QuestScriptLexer.OpenBraceToken;
+            return nextTokenType != QuestScriptLexer.OpenCurlyBraceToken;
         }
 
         public bool CloseBrace()
         {
-            return _input.Lt(1).Type == QuestScriptLexer.CloseBraceToken;
+            return _input.Lt(1).Type == QuestScriptLexer.CloseCurlyBraceToken;
         }
 
         /// <summary>Returns true if on the current index of the parser's

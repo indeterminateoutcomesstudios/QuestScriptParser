@@ -40,6 +40,7 @@ options
 script : statementList? EOF;
 
 //statement definitions
+statementList : statement+;
 
 statement
     : block
@@ -50,25 +51,48 @@ statement
     | continueStatement
     | breakStatement
     | returnStatement
-    | throwStatement
+    | finishStatement
+    | firstTimeStatement
+    | getInputStatement
+    | onReadyStatement
+    | pictureStatement
+    | playSoundStatement
+    | showMenuStatement
+    | startTransactionStatement
+    | stopSoundStatement
+    | undoStatement
+    | switchStatement
+    | waitStatement
+    | askStatement
     ;
 
-block : OpenBraceToken statementList? CloseBraceToken;
+block : OpenCurlyBraceToken statementList? CloseCurlyBraceToken;
 
-statementList : statement+;
-
+askStatement: AskToken '(' statement ')' statement;
+firstTimeStatement: FirstTimeToken statement (OtherwiseToken statement)?;
+getInputStatement: GetInputToken statement;
+onReadyStatement: OnReadyToken statement;
+pictureStatement: PictureToken arguments;
+playSoundStatement: PlaySoundToken arguments;
+stopSoundStatement: StopSoundToken;
+undoStatement: UndoToken;
+switchStatement: SwitchToken '(' statement ')' OpenCurlyBraceToken (CaseToken '(' literal ')' statement)* (DefaultToken statement)? CloseCurlyBraceToken;
+waitStatement: WaitToken statement;
+showMenuStatement: ShowMenuToken arguments statement;
+startTransactionStatement: StartTransactionToken '(' StringLiteralToken ')';
 ifStatement : IfToken '(' expressionSequence ')' statement (ElseToken statement)?;
 ifElseIfStatement : IfToken '(' expressionSequence ')' statement (ElseToken IfToken statement)* (ElseToken statement)?;
-continueStatement : ContinueToken ({this.NotLineTerminator()}? IdentifierToken)? endOfLine;
-breakStatement : BreakToken ({this.NotLineTerminator()}? IdentifierToken)? endOfLine;
-returnStatement : ReturnToken '(' ({this.NotLineTerminator()}? expressionSequence)? ')' endOfLine;
-expressionStatement : {this.NotOpenBrace()}? expressionSequence endOfLine;
-throwStatement : ThrowToken {this.NotLineTerminator()}? expressionSequence endOfLine;
+continueStatement : ContinueToken ({this.NotLineTerminator()}? IdentifierToken)?;
+breakStatement : BreakToken ({this.NotLineTerminator()}? IdentifierToken)?;
+returnStatement : ReturnToken '(' ({this.NotLineTerminator()}? expressionSequence)? ')';
+expressionStatement : {this.NotOpenBrace()}? expressionSequence;
 iterationStatement
-    : DoToken statement WhileToken '(' expressionSequence ')' endOfLine   # DoStatement
-    | WhileToken '(' expressionSequence ')' statement                     # WhileStatement
-    | ForEachToken '(' IdentifierToken ':' IdentifierToken ')' statement  # ForEachStatement
+    : DoToken statement WhileToken '(' expressionSequence ')'                                    # DoStatement
+    | WhileToken '(' expressionSequence ')' statement                                            # WhileStatement
+    | ForEachToken '(' IdentifierToken ':' IdentifierToken ')' statement                         # ForEachStatement
+    | ForToken '(' IdentifierToken ',' IntegerLiteralToken ',' IntegerLiteralToken ')' statement # ForStatement
     ;
+finishStatement: FinishToken;
 
 //statement elements
 expressionSequence  : singleExpression (',' singleExpression)*;
@@ -99,13 +123,17 @@ singleExpression :
     | singleExpression 'or' singleExpression                                 # LogicalOrExpression
     | singleExpression '?' singleExpression ':' singleExpression             # TernaryExpression
     | singleExpression '=' singleExpression                                  # AssignmentOrEqualityExpression
+    | singleExpression '=>' singleExpression                                 # ScriptAssignmentExpression
     | singleExpression assignmentOperator singleExpression                   # AssignmentOperatorExpression
     | singleExpression arguments                                             # FunctionCallExpression
     | singleExpression '[' expressionSequence ']'                            # MemberIndexExpression
     | arrayLiteral                                                           # ArrayLiteralExpression
     | ThisToken                                                              # ThisExpression
     | IdentifierToken                                                        # IdentifierExpression
-    | 'clone' IdentifierToken                                                # CloneObjectExpression
+    | CloneToken IdentifierToken                                             # CloneObjectExpression
+    | CreateToken ExitToken arguments                                        # CreateExitExpression
+    | CreateToken TimerToken arguments                                       # CreateTimerExpression
+    | CreateToken TurnscriptToken arguments                                  # CreateTurnscriptExpression
     ;
 
 assignmentOperator
@@ -144,14 +172,44 @@ keyword :
     | ForToken
     | WhileToken
     | ThisToken
-    | ThrowToken
+    | CreateToken
+    | ExitToken
+    | TimerToken
+    | AskToken
+    | TurnscriptToken
+    | FinishToken
+    | FirstTimeToken
+    | OtherwiseToken
+    | SwitchToken
+    | CaseToken
+    | DefaultToken
+    | UndoToken
+    | WaitToken
+    | CloneToken
     ;
 
-endOfLine : EOF | {this.LineTerminatorAhead()}? | {this.CloseBrace()}?;
-
-OpenBraceToken:						 '{';
-CloseBraceToken:					 '}';
-
+OpenCurlyBraceToken:				 '{';
+CloseCurlyBraceToken:				 '}';
+CloneToken:                          'clone';
+WaitToken:                           'wait';
+SwitchToken:                         'switch';
+CaseToken:                           'case';
+DefaultToken:                        'default';
+UndoToken:                           'undo';
+StopSoundToken:                      'stop sound';
+StartTransactionToken:               'start transaction';
+ShowMenuToken:                       'show menu';
+PlaySoundToken:                      'play sound';
+PictureToken:                        'picture';
+OnReadyToken:                        'on ready';
+GetInputToken:                       'get input';
+OtherwiseToken:                      'otherwise';
+FirstTimeToken:                      'firsttime';
+FinishToken:                         'finish';
+TurnscriptToken:                     'turnscript';
+TimerToken:                          'timer';
+ExitToken:                           'exit';
+AskToken:                            'ask';
 BreakToken:                          'break';
 DoToken:                             'do';
 IfToken:                             'if';
@@ -161,7 +219,7 @@ ContinueToken:                       'continue';
 ForToken:                            'for';
 WhileToken:                          'while';
 ThisToken:                           'this';
-ThrowToken:                          'throw';
+CreateToken:                         'create';
 ForEachToken:                        'foreach';
 
 NullLiteralToken : 'null';
