@@ -81,7 +81,7 @@ waitStatement: WaitToken statement;
 showMenuStatement: ShowMenuToken arguments statement;
 startTransactionStatement: StartTransactionToken '(' StringLiteralToken ')';
 ifStatement : IfToken '(' expressionSequence ')' statement (ElseToken statement)?;
-ifElseIfStatement : IfToken '(' expressionSequence ')' statement (ElseToken IfToken statement)* (ElseToken statement)?;
+ifElseIfStatement : IfToken '(' expressionSequence ')' statement ((ElseToken IfToken|ElseIfToken) statement)* (ElseToken statement)?;
 continueStatement : ContinueToken ({this.NotLineTerminator()}? IdentifierToken)?;
 breakStatement : BreakToken ({this.NotLineTerminator()}? IdentifierToken)?;
 returnStatement : ReturnToken '(' ({this.NotLineTerminator()}? expressionSequence)? ')';
@@ -186,6 +186,7 @@ keyword :
     | UndoToken
     | WaitToken
     | CloneToken
+	| ElseIfToken
     ;
 
 OpenCurlyBraceToken:				 '{';
@@ -214,6 +215,7 @@ BreakToken:                          'break';
 DoToken:                             'do';
 IfToken:                             'if';
 ElseToken:                           'else';
+ElseIfToken:                         'elseif';
 ReturnToken:                         'return';
 ContinueToken:                       'continue';
 ForToken:                            'for';
