@@ -58,7 +58,6 @@
       <DependentUpon>QuestScript.g4</DependentUpon>
     </Compile>
     <Compile Include="QuestScriptBaseParser.cs" />
-    <Compile Include="ParseTreeHelper.cs" />
     <Compile Include="StringQuestScriptVisitor.cs" />
   </ItemGroup>
   <ItemGroup>

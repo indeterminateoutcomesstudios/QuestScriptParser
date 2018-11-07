@@ -5,8 +5,12 @@ namespace QuestScriptParser
     //credit : adapted from https://github.com/antlr/grammars-v4/blob/master/javascript/CSharpSharwell/JavaScriptBaseParser.cs
     public abstract class QuestScriptBaseParser : Parser
     {
+        protected QuestScriptBaseParser(ITokenStream input) : base(input)
+        {
+        }
+
         /// <summary>
-        /// Short form for Prev(String str)
+        ///     Short form for Prev(String str)
         /// </summary>
         public bool P(string str)
         {
@@ -14,7 +18,7 @@ namespace QuestScriptParser
         }
 
         /// <summary>
-        /// Whether the Previous token value equals to str
+        ///     Whether the Previous token value equals to str
         /// </summary>
         public bool Prev(string str)
         {
@@ -40,7 +44,7 @@ namespace QuestScriptParser
 
         public bool NotOpenBrace()
         {
-            int nextTokenType = _input.Lt(1).Type;
+            var nextTokenType = _input.Lt(1).Type;
             return nextTokenType != QuestScriptLexer.OpenCurlyBraceToken;
         }
 
@@ -49,18 +53,19 @@ namespace QuestScriptParser
             return _input.Lt(1).Type == QuestScriptLexer.CloseCurlyBraceToken;
         }
 
-        /// <summary>Returns true if on the current index of the parser's
-        /// token stream a token of the given type exists on the
-        /// Hidden channel.
+        /// <summary>
+        ///     Returns true if on the current index of the parser's
+        ///     token stream a token of the given type exists on the
+        ///     Hidden channel.
         /// </summary>
         /// <param name="type">
-        /// The type of the token on the Hidden channel to check.
+        ///     The type of the token on the Hidden channel to check.
         /// </param>
         public bool Here(int type)
         {
             // Get the token ahead of the current index.
-            int possibleIndexEosToken = CurrentToken.TokenIndex - 1;
-            IToken ahead = _input.Get(possibleIndexEosToken);
+            var possibleIndexEosToken = CurrentToken.TokenIndex - 1;
+            var ahead = _input.Get(possibleIndexEosToken);
 
             // Check if the token resides on the Hidden channel and if it's of the
             // provided type.
@@ -68,28 +73,20 @@ namespace QuestScriptParser
         }
 
         /// <summary>
-        /// Returns true if on the current index of the parser's
-        /// token stream a token exists on the Hidden channel which
-        /// either is a line terminator, or is a multi line comment that
-        /// contains a line terminator.
+        ///     Returns true if on the current index of the parser's
+        ///     token stream a token exists on the Hidden channel which
+        ///     either is a line terminator, or is a multi line comment that
+        ///     contains a line terminator.
         /// </summary>
         public bool LineTerminatorAhead()
         {
             // Get the token ahead of the current index.
-            int possibleIndexEosToken = CurrentToken.TokenIndex - 1;
-            IToken ahead = _input.Get(possibleIndexEosToken);
+            var possibleIndexEosToken = CurrentToken.TokenIndex - 1;
+            var ahead = _input.Get(possibleIndexEosToken);
 
-            if (ahead.Channel != Lexer.Hidden)
-            {
-                // We're only interested in tokens on the Hidden channel.
-                return false;
-            }
+            if (ahead.Channel != Lexer.Hidden) return false;
 
-            if (ahead.Type == QuestScriptLexer.Newline)
-            {
-                // There is definitely a line terminator ahead.
-                return true;
-            }
+            if (ahead.Type == QuestScriptLexer.Newline) return true;
 
             if (ahead.Type == QuestScriptLexer.Whitespace)
             {
@@ -99,17 +96,12 @@ namespace QuestScriptParser
             }
 
             // Get the token's text and type.
-            string text = ahead.Text;
-            int type = ahead.Type;
+            var text = ahead.Text;
+            var type = ahead.Type;
 
             // Check if the token is, or contains a line terminator.
-            return (type == QuestScriptLexer.BlockComment && (text.Contains("\r") || text.Contains("\n"))) ||
-                   (type == QuestScriptLexer.LineTerminator);
-        }
-
-        protected QuestScriptBaseParser(ITokenStream input) : base(input)
-        {
+            return type == QuestScriptLexer.BlockComment && (text.Contains("\r") || text.Contains("\n")) ||
+                   type == QuestScriptLexer.LineTerminator;
         }
     }
-
 }

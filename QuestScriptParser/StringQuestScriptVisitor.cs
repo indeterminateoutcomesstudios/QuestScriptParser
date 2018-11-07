@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace QuestScriptParser
+﻿namespace QuestScriptParser
 {
     public class StringQuestScriptVisitor : QuestScriptBaseVisitor<string>
     {
@@ -22,6 +20,6 @@ namespace QuestScriptParser
         public override string VisitDoubleLiteral(QuestScriptParser.DoubleLiteralContext context)
         {
             return context.GetText();
-        }    
+        }
     }
 }
