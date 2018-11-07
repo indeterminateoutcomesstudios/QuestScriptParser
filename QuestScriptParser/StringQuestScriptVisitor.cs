@@ -1,25 +1,15 @@
-﻿namespace QuestScriptParser
+﻿using System;
+using System.Text;
+using Antlr4.Runtime.Misc;
+using Antlr4.Runtime.Tree;
+
+namespace QuestScriptParser
 {
-    public class StringQuestScriptVisitor : QuestScriptBaseVisitor<string>
-    {
-        public override string VisitKeyword(QuestScriptParser.KeywordContext context)
-        {
-            return context.GetText();
-        }
+    public class StringQuestScriptVisitor : QuestScriptBaseVisitor<bool>
+    {      
+        private readonly StringBuilder _output = new StringBuilder();
+        public string Output => _output.ToString();
+        
 
-        public override string VisitIntegerLiteral(QuestScriptParser.IntegerLiteralContext context)
-        {
-            return context.GetText();
-        }
-
-        public override string VisitBooleanLiteral(QuestScriptParser.BooleanLiteralContext context)
-        {
-            return context.GetText();
-        }
-
-        public override string VisitDoubleLiteral(QuestScriptParser.DoubleLiteralContext context)
-        {
-            return context.GetText();
-        }
     }
 }

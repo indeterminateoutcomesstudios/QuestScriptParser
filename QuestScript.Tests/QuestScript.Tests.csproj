@@ -60,9 +60,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BaseParserTest.cs" />
     <Compile Include="BasicTests.cs" />
     <Compile Include="ParseTreeHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="StatementTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\QuestScriptParser\QuestScriptParser.csproj">

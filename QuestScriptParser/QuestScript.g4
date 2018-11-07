@@ -46,7 +46,6 @@ statement
     : block
     | expressionStatement
     | ifStatement
-    | ifElseIfStatement
     | iterationStatement
     | continueStatement
     | breakStatement
@@ -64,11 +63,13 @@ statement
     | switchStatement
     | waitStatement
     | askStatement
+	| switchCaseStatement	
     ;
  
 block : OpenBraceToken statementList? CloseBraceToken;
 
-askStatement: AskToken OpenParenToken statement CloseParenToken statement;
+askQuestionStatement: AskToken OpenParenToken statement CloseParenToken;
+askStatement: askQuestionStatement statement;
 firstTimeStatement: FirstTimeToken statement (OtherwiseToken statement)?;
 getInputStatement: GetInputToken statement;
 onReadyStatement: OnReadyToken statement;
@@ -76,12 +77,27 @@ pictureStatement: PictureToken arguments;
 playSoundStatement: PlaySoundToken arguments;
 stopSoundStatement: StopSoundToken;
 undoStatement: UndoToken;
-switchStatement: SwitchToken OpenParenToken statement CloseParenToken OpenBraceToken (CaseToken OpenParenToken literal CloseParenToken statement)* (DefaultToken statement)? CloseBraceToken;
+
+switchCaseStatement: 
+	switchStatement
+	OpenBraceToken 
+		caseStatement* 
+		defaultStatement? 
+	CloseBraceToken;
+
+switchStatement : SwitchToken OpenParenToken statement CloseParenToken;
+caseStatement : CaseToken OpenParenToken literal CloseParenToken statement;
+defaultStatement : DefaultToken statement;
+
 waitStatement: WaitToken statement;
 showMenuStatement: ShowMenuToken arguments statement;
 startTransactionStatement: StartTransactionToken OpenParenToken StringLiteralToken CloseParenToken;
-ifStatement : IfToken OpenParenToken expressionSequence CloseParenToken statement (ElseToken statement)?;
-ifElseIfStatement : IfToken OpenParenToken expressionSequence CloseParenToken statement ((ElseToken IfToken|ElseIfToken) statement)* (ElseToken statement)?;
+
+ifConditionStatement: OpenParenToken expressionSequence CloseParenToken;
+elseIfStatement : ElseIfToken ifConditionStatement statement;
+elseStatement : ElseToken statement;
+ifStatement : IfToken ifConditionStatement statement elseIfStatement* elseStatement?;
+
 continueStatement : ContinueToken ({this.NotLineTerminator()}? IdentifierToken)?;
 breakStatement : BreakToken ({this.NotLineTerminator()}? IdentifierToken)?;
 returnStatement : ReturnToken OpenParenToken ({this.NotLineTerminator()}? expressionSequence)? CloseParenToken;
@@ -106,7 +122,7 @@ arguments
 //base expression that allows recursive traversal
 singleExpression :
       literal                                                                # LiteralExpression
-    | OpenParenToken expressionSequence CloseParenToken                                             # ParenthesizedExpression
+    | OpenParenToken expressionSequence CloseParenToken                      # ParenthesizedExpression
     | singleExpression '.' identifierName                                    # MemberDotExpression
     | '++' singleExpression                                                  # PreIncrementExpression
     | '--' singleExpression                                                  # PreDecreaseExpression
@@ -124,7 +140,7 @@ singleExpression :
     | singleExpression '?' singleExpression ':' singleExpression             # TernaryExpression
     | singleExpression '=' singleExpression                                  # AssignmentOrEqualityExpression
     | singleExpression '=>' singleExpression                                 # ScriptAssignmentExpression
-    | singleExpression assignmentOperator singleExpression                   # AssignmentOperatorExpression
+    | singleExpression assignmentOperator singleExpression                   # CalculationAndAssignmentOperatorExpression
     | singleExpression arguments                                             # FunctionCallExpression
     | singleExpression '[' expressionSequence ']'                            # MemberIndexExpression
     | arrayLiteral                                                           # ArrayLiteralExpression
@@ -141,7 +157,7 @@ assignmentOperator
     | '/='
     | '%='
     | '+='
-    | '-='
+    | '-='	
     ;
 
 identifierName : IdentifierToken | reservedWord;
@@ -245,7 +261,6 @@ fragment Letter : [A-Za-z];
 fragment NonzeroDigit : [1-9];
 fragment Digit : [0-9];
 fragment EscapeSequence : '\\' ['"?abfnrtv\\];
-
 
 Newline :   ('\r\n'|'\n'|'\r') -> skip;
 // end of string related definitions
