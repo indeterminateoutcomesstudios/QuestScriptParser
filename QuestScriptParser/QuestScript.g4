@@ -162,7 +162,7 @@ assignmentOperator
 
 identifierName : IdentifierToken | reservedWord;
 
-literal : numericLiteral | characterLiteral | stringLiteral | booleanLiteral | nullLiteral;
+literal : numericLiteral | characterLiteral | stringLiteral | booleanLiteral | nullLiteral | arrayLiteral;
 
 arrayLiteral : '[' CommaToken* elementList? CommaToken* ']';
 elementList : singleExpression (CommaToken+ singleExpression)*;
