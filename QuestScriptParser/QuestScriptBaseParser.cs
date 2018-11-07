@@ -42,15 +42,15 @@ namespace QuestScriptParser
             return !Here(QuestScriptLexer.Newline);
         }
 
-        public bool NotOpenBrace()
+        public bool NotOpenBraceToken()
         {
             var nextTokenType = _input.Lt(1).Type;
-            return nextTokenType != QuestScriptLexer.OpenCurlyBraceToken;
+            return nextTokenType != QuestScriptLexer.OpenBraceToken;
         }
 
         public bool CloseBrace()
         {
-            return _input.Lt(1).Type == QuestScriptLexer.CloseCurlyBraceToken;
+            return _input.Lt(1).Type == QuestScriptLexer.CloseBraceToken;
         }
 
         /// <summary>

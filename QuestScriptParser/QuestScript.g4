@@ -65,10 +65,10 @@ statement
     | waitStatement
     | askStatement
     ;
+ 
+block : OpenBraceToken statementList? CloseBraceToken;
 
-block : OpenCurlyBraceToken statementList? CloseCurlyBraceToken;
-
-askStatement: AskToken '(' statement ')' statement;
+askStatement: AskToken OpenParenToken statement CloseParenToken statement;
 firstTimeStatement: FirstTimeToken statement (OtherwiseToken statement)?;
 getInputStatement: GetInputToken statement;
 onReadyStatement: OnReadyToken statement;
@@ -76,37 +76,37 @@ pictureStatement: PictureToken arguments;
 playSoundStatement: PlaySoundToken arguments;
 stopSoundStatement: StopSoundToken;
 undoStatement: UndoToken;
-switchStatement: SwitchToken '(' statement ')' OpenCurlyBraceToken (CaseToken '(' literal ')' statement)* (DefaultToken statement)? CloseCurlyBraceToken;
+switchStatement: SwitchToken OpenParenToken statement CloseParenToken OpenBraceToken (CaseToken OpenParenToken literal CloseParenToken statement)* (DefaultToken statement)? CloseBraceToken;
 waitStatement: WaitToken statement;
 showMenuStatement: ShowMenuToken arguments statement;
-startTransactionStatement: StartTransactionToken '(' StringLiteralToken ')';
-ifStatement : IfToken '(' expressionSequence ')' statement (ElseToken statement)?;
-ifElseIfStatement : IfToken '(' expressionSequence ')' statement ((ElseToken IfToken|ElseIfToken) statement)* (ElseToken statement)?;
+startTransactionStatement: StartTransactionToken OpenParenToken StringLiteralToken CloseParenToken;
+ifStatement : IfToken OpenParenToken expressionSequence CloseParenToken statement (ElseToken statement)?;
+ifElseIfStatement : IfToken OpenParenToken expressionSequence CloseParenToken statement ((ElseToken IfToken|ElseIfToken) statement)* (ElseToken statement)?;
 continueStatement : ContinueToken ({this.NotLineTerminator()}? IdentifierToken)?;
 breakStatement : BreakToken ({this.NotLineTerminator()}? IdentifierToken)?;
-returnStatement : ReturnToken '(' ({this.NotLineTerminator()}? expressionSequence)? ')';
-expressionStatement : {this.NotOpenBrace()}? expressionSequence;
+returnStatement : ReturnToken OpenParenToken ({this.NotLineTerminator()}? expressionSequence)? CloseParenToken;
+expressionStatement : {this.NotOpenBraceToken()}? expressionSequence;
 iterationStatement
-    : DoToken statement WhileToken '(' expressionSequence ')'                                    # DoStatement
-    | WhileToken '(' expressionSequence ')' statement                                            # WhileStatement
-    | ForEachToken '(' IdentifierToken ':' IdentifierToken ')' statement                         # ForEachStatement
-    | ForToken '(' IdentifierToken ',' IntegerLiteralToken ',' IntegerLiteralToken ')' statement # ForStatement
+    : DoToken statement WhileToken OpenParenToken expressionSequence CloseParenToken                                    # DoStatement
+    | WhileToken OpenParenToken expressionSequence CloseParenToken statement                                            # WhileStatement
+    | ForEachToken OpenParenToken IdentifierToken ':' IdentifierToken CloseParenToken statement                         # ForEachStatement
+    | ForToken OpenParenToken IdentifierToken CommaToken IntegerLiteralToken CommaToken IntegerLiteralToken CloseParenToken statement # ForStatement
     ;
 finishStatement: FinishToken;
 
 //statement elements
-expressionSequence  : singleExpression (',' singleExpression)*;
+expressionSequence  : singleExpression (CommaToken singleExpression)*;
 
 arguments
-    : '('(
-          singleExpression (',' singleExpression)*
-       )?')'
+    : OpenParenToken(
+          singleExpression (CommaToken singleExpression)*
+       )?CloseParenToken
     ;
 
 //base expression that allows recursive traversal
 singleExpression :
       literal                                                                # LiteralExpression
-    | '(' expressionSequence ')'                                             # ParenthesizedExpression
+    | OpenParenToken expressionSequence CloseParenToken                                             # ParenthesizedExpression
     | singleExpression '.' identifierName                                    # MemberDotExpression
     | '++' singleExpression                                                  # PreIncrementExpression
     | '--' singleExpression                                                  # PreDecreaseExpression
@@ -148,8 +148,8 @@ identifierName : IdentifierToken | reservedWord;
 
 literal : numericLiteral | characterLiteral | stringLiteral | booleanLiteral | nullLiteral;
 
-arrayLiteral : '[' ','* elementList? ','* ']';
-elementList : singleExpression (','+ singleExpression)*;
+arrayLiteral : '[' CommaToken* elementList? CommaToken* ']';
+elementList : singleExpression (CommaToken+ singleExpression)*;
 
 numericLiteral : integerLiteral | doubleLiteral;
 integerLiteral : IntegerLiteralToken;
@@ -187,10 +187,14 @@ keyword :
     | WaitToken
     | CloneToken
 	| ElseIfToken
+	| PictureToken
     ;
 
-OpenCurlyBraceToken:				 '{';
-CloseCurlyBraceToken:				 '}';
+CloseParenToken:					 ')';
+OpenParenToken:						 '(';
+CommaToken:							 ',';
+OpenBraceToken:						 '{';
+CloseBraceToken:					 '}';
 CloneToken:                          'clone';
 WaitToken:                           'wait';
 SwitchToken:                         'switch';
