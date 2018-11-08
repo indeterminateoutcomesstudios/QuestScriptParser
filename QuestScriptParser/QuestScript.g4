@@ -170,7 +170,7 @@ assignmentOperator
 
 identifierName : IdentifierToken | reservedWord;
 
-literal : numericLiteral | characterLiteral | stringLiteral | booleanLiteral | nullLiteral;
+literal : numericLiteral | characterLiteral | stringLiteral | booleanLiteral | nullLiteral | arrayLiteral;
 
 arrayLiteral : '[' values = elementList? ']';
 elementList : elements += singleExpression (CommaToken elements += singleExpression)*;
