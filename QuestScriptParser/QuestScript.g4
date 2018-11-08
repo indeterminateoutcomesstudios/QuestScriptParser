@@ -39,11 +39,11 @@ options
 
 script : statementList? EOF;
 
-//statement definitions
-statementList : statement+;
+statementList : statements += statement+;
 
+//statement definitions
 statement
-    : block
+    : blockStatement
     | expressionStatement
     | ifStatement
     | iterationStatement
@@ -66,90 +66,98 @@ statement
 	| switchCaseStatement	
     ;
  
-block : OpenBraceToken statementList? CloseBraceToken;
+blockStatement : OpenBraceToken blockStatements = statementList? CloseBraceToken;
 
-askQuestionStatement: AskToken OpenParenToken statement CloseParenToken;
-askStatement: askQuestionStatement statement;
-firstTimeStatement: FirstTimeToken statement (OtherwiseToken statement)?;
-getInputStatement: GetInputToken statement;
-onReadyStatement: OnReadyToken statement;
-pictureStatement: PictureToken arguments;
-playSoundStatement: PlaySoundToken arguments;
+askQuestionStatement: AskToken OpenParenToken question = singleExpression CloseParenToken;
+askStatement: askQuestionStatement code = statement;
+firstTimeStatement: FirstTimeToken firstTimeCode = statement (OtherwiseToken otherwiseCode = statement)?;
+getInputStatement: GetInputToken code = statement;
+onReadyStatement: OnReadyToken code = statement;
+pictureStatement: PictureToken OpenParenToken filename = singleExpression CloseParenToken;
+playSoundStatement: PlaySoundToken OpenParenToken file = singleExpression CommaToken wait = singleExpression CommaToken loop = singleExpression CloseParenToken; //(string file, boolean wait, boolean loop)
 stopSoundStatement: StopSoundToken;
 undoStatement: UndoToken;
 
 switchCaseStatement: 
-	switchStatement
+	switch = switchStatement
 	OpenBraceToken 
-		caseStatement* 
-		defaultStatement? 
+		cases += caseStatement* 
+		defaultContext = defaultStatement? 
 	CloseBraceToken;
 
-switchStatement : SwitchToken OpenParenToken statement CloseParenToken;
-caseStatement : CaseToken OpenParenToken literal CloseParenToken statement;
-defaultStatement : DefaultToken statement;
+switchStatement : SwitchToken OpenParenToken switchConditionStatement = statement CloseParenToken;
+caseStatement : CaseToken OpenParenToken caseValue = literal CloseParenToken code = statement;
+defaultStatement : DefaultToken code = statement;
 
-waitStatement: WaitToken statement;
-showMenuStatement: ShowMenuToken arguments statement;
+waitStatement: WaitToken code = statement;
+showMenuStatement: ShowMenuToken menuArguments = arguments code = statement;
 startTransactionStatement: StartTransactionToken OpenParenToken StringLiteralToken CloseParenToken;
 
-ifConditionStatement: OpenParenToken expressionSequence CloseParenToken;
-elseIfStatement : ElseIfToken ifConditionStatement statement;
-elseStatement : ElseToken statement;
-ifStatement : IfToken ifConditionStatement statement elseIfStatement* elseStatement?;
+ifConditionStatement: OpenParenToken condition = expressionSequence CloseParenToken;
+ifStatement : IfToken conditionStatement = ifConditionStatement code = statement elseIfStatement* elseStatement?;
+elseIfStatement : ElseIfToken conditionStatement = ifConditionStatement code = statement;
+elseStatement : ElseToken code = statement;
 
-continueStatement : ContinueToken ({this.NotLineTerminator()}? IdentifierToken)?;
-breakStatement : BreakToken ({this.NotLineTerminator()}? IdentifierToken)?;
-returnStatement : ReturnToken OpenParenToken ({this.NotLineTerminator()}? expressionSequence)? CloseParenToken;
+continueStatement : ContinueToken;
+breakStatement : BreakToken;
+  
+returnStatement : ReturnToken OpenParenToken (returnValue = singleExpression)? CloseParenToken;
+
 expressionStatement : {this.NotOpenBraceToken()}? expressionSequence;
 iterationStatement
-    : DoToken statement WhileToken OpenParenToken expressionSequence CloseParenToken                                    # DoStatement
-    | WhileToken OpenParenToken expressionSequence CloseParenToken statement                                            # WhileStatement
-    | ForEachToken OpenParenToken IdentifierToken ':' IdentifierToken CloseParenToken statement                         # ForEachStatement
-    | ForToken OpenParenToken IdentifierToken CommaToken IntegerLiteralToken CommaToken IntegerLiteralToken CloseParenToken statement # ForStatement
+    : DoToken code = statement WhileToken OpenParenToken condition = expressionSequence CloseParenToken   # DoStatement
+    | WhileToken OpenParenToken condition = expressionSequence CloseParenToken code = statement   # WhileStatement
+    | ForEachToken OpenParenToken iterationVariable = IdentifierToken ':' 
+								  enumerationVariable = IdentifierToken 
+				   CloseParenToken code = statement   # ForEachStatement
+    | ForToken OpenParenToken iterationVariable = IdentifierToken CommaToken 
+							  iterationStart = IntegerLiteralToken CommaToken 
+							  iterationEnd = IntegerLiteralToken 
+			   CloseParenToken code = statement   # ForStatement
     ;
+
 finishStatement: FinishToken;
 
 //statement elements
-expressionSequence  : singleExpression (CommaToken singleExpression)*;
+expressionSequence  : sequenceExpressions += singleExpression (CommaToken sequenceExpressions += singleExpression)*;
 
 arguments
     : OpenParenToken(
-          singleExpression (CommaToken singleExpression)*
+          argumentExpressions += singleExpression (CommaToken argumentExpressions += singleExpression)*
        )?CloseParenToken
     ;
 
 //base expression that allows recursive traversal
 singleExpression :
-      literal                                                                # LiteralExpression
-    | OpenParenToken expressionSequence CloseParenToken                      # ParenthesizedExpression
-    | singleExpression '.' identifierName                                    # MemberDotExpression
-    | '++' singleExpression                                                  # PreIncrementExpression
-    | '--' singleExpression                                                  # PreDecreaseExpression
-    | singleExpression '++'                                                  # PostIncrementExpression
-    | singleExpression '--'                                                  # PostDecreaseExpression
-    | '+' singleExpression                                                   # UnaryPlusExpression
-    | '-' singleExpression                                                   # UnaryMinusExpression
-    | 'not' singleExpression                                                 # NotExpression
-    | singleExpression ('*' | '/' | '%') singleExpression                    # MultiplicativeExpression
-    | singleExpression ('+' | '-') singleExpression                          # AdditiveExpression
-    | singleExpression ('<' | '>' | '<=' | '>=') singleExpression            # RelationalExpression
-    | singleExpression '!='  singleExpression                                # InequalityExpression
-    | singleExpression 'and' singleExpression                                # LogicalAndExpression
-    | singleExpression 'or' singleExpression                                 # LogicalOrExpression
-    | singleExpression '?' singleExpression ':' singleExpression             # TernaryExpression
-    | singleExpression '=' singleExpression                                  # AssignmentOrEqualityExpression
-    | singleExpression '=>' singleExpression                                 # ScriptAssignmentExpression
-    | singleExpression assignmentOperator singleExpression                   # CalculationAndAssignmentOperatorExpression
-    | singleExpression arguments                                             # FunctionCallExpression
-    | singleExpression '[' expressionSequence ']'                            # MemberIndexExpression
-    | arrayLiteral                                                           # ArrayLiteralExpression
-    | ThisToken                                                              # ThisExpression
-    | IdentifierToken                                                        # IdentifierExpression
-    | CloneToken IdentifierToken                                             # CloneObjectExpression
-    | CreateToken ExitToken arguments                                        # CreateExitExpression
-    | CreateToken TimerToken arguments                                       # CreateTimerExpression
-    | CreateToken TurnscriptToken arguments                                  # CreateTurnscriptExpression
+      literal																												# LiteralExpression
+    | OpenParenToken expression = expressionSequence CloseParenToken														# ParenthesizedExpression
+    | member = singleExpression '.' property = identifierName																# MemberDotExpression
+    | '++' {this.NotLineTerminator();} unaryExpression = singleExpression													# PreIncrementExpression
+    | '--' {this.NotLineTerminator();} unaryExpression = singleExpression													# PreDecreaseExpression
+    | unaryExpression = singleExpression {this.NotLineTerminator();} '++'													# PostIncrementExpression
+    | unaryExpression = singleExpression {this.NotLineTerminator();} '--'													# PostDecreaseExpression
+    | '+' unaryExpression = singleExpression																				# UnaryPlusExpression
+    | '-' unaryExpression = singleExpression																				# UnaryMinusExpression
+    | 'not' negatedExpression = singleExpression																			# NotExpression
+    | lvalue = singleExpression ('*' | '/' | '%') rvalue = singleExpression													# MultiplicativeExpression
+    | lvalue = singleExpression ('+' | '-') rvalue = singleExpression														# AdditiveExpression
+    | lvalue = singleExpression ('<' | '>' | '<=' | '>=') rvalue = singleExpression											# RelationalExpression
+    | lvalue = singleExpression '!='  rvalue = singleExpression																# InequalityExpression
+    | lvalue = singleExpression 'and' rvalue = singleExpression																# LogicalAndExpression
+    | lvalue = singleExpression 'or' rvalue = singleExpression																# LogicalOrExpression
+    | condition = singleExpression '?' firstValue = singleExpression ':' secondValue = singleExpression						# TernaryExpression
+    | lvalue = singleExpression '=' rvalue = singleExpression																# AssignmentOrEqualityExpression
+    | lvalue = singleExpression '=>' rvalue = statement																		# ScriptAssignmentExpression
+    | lvalue = singleExpression assignmentOperator rvalue = singleExpression												# CalculationAndAssignmentOperatorExpression
+    | functionExpression = singleExpression args = arguments																# FunctionCallExpression
+    | indexExpression = singleExpression '[' indexerExpression = expressionSequence ']'										# MemberIndexExpression
+    | arrayLiteral																											# ArrayLiteralExpression
+    | ThisToken																												# ThisExpression
+    | IdentifierToken																										# IdentifierExpression
+    | CloneToken IdentifierToken																							# CloneObjectExpression
+    | CreateToken ExitToken args = arguments																				# CreateExitExpression
+    | CreateToken TimerToken args = arguments																				# CreateTimerExpression
+    | CreateToken TurnscriptToken args = arguments																			# CreateTurnscriptExpression
     ;
 
 assignmentOperator
@@ -164,8 +172,8 @@ identifierName : IdentifierToken | reservedWord;
 
 literal : numericLiteral | characterLiteral | stringLiteral | booleanLiteral | nullLiteral;
 
-arrayLiteral : '[' CommaToken* elementList? CommaToken* ']';
-elementList : singleExpression (CommaToken+ singleExpression)*;
+arrayLiteral : '[' values = elementList? ']';
+elementList : elements += singleExpression (CommaToken elements += singleExpression)*;
 
 numericLiteral : integerLiteral | doubleLiteral;
 integerLiteral : IntegerLiteralToken;

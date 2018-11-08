@@ -5,7 +5,7 @@ VisualStudioVersion = 15.0.28010.2050
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuestScriptParser", "QuestScriptParser\QuestScriptParser.csproj", "{FD572318-2A39-48B7-BD54-702BD7C39871}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuestScript.Tests", "QuestScript.Tests\QuestScript.Tests.csproj", "{0A5F536F-17C8-4E93-96AD-2A43871748BC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuestScriptParser.Tryouts", "QuestScriptParser.Tryouts\QuestScriptParser.Tryouts.csproj", "{EFDF3748-200D-4596-9A11-B98E2AA79538}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{FD572318-2A39-48B7-BD54-702BD7C39871}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FD572318-2A39-48B7-BD54-702BD7C39871}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FD572318-2A39-48B7-BD54-702BD7C39871}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0A5F536F-17C8-4E93-96AD-2A43871748BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0A5F536F-17C8-4E93-96AD-2A43871748BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0A5F536F-17C8-4E93-96AD-2A43871748BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0A5F536F-17C8-4E93-96AD-2A43871748BC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EFDF3748-200D-4596-9A11-B98E2AA79538}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EFDF3748-200D-4596-9A11-B98E2AA79538}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EFDF3748-200D-4596-9A11-B98E2AA79538}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EFDF3748-200D-4596-9A11-B98E2AA79538}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
