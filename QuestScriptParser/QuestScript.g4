@@ -75,12 +75,12 @@ statement
     ;
  
 blockStatement : OpenBraceToken blockStatements = statementList? CloseBraceToken;
-
+codeBlock : statement;
 askQuestionStatement: AskToken OpenParenToken question = singleExpression CloseParenToken;
-askStatement: askQuestionStatement code = statement;
+askStatement: askQuestionStatement code = codeBlock;
 firstTimeStatement: FirstTimeToken firstTimeCode = statement (OtherwiseToken otherwiseCode = statement)?;
-getInputStatement: GetInputToken code = statement;
-onReadyStatement: OnReadyToken code = statement;
+getInputStatement: GetInputToken code = codeBlock;
+onReadyStatement: OnReadyToken code = codeBlock;
 pictureStatement: PictureToken OpenParenToken filename = singleExpression CloseParenToken;
 playSoundStatement: PlaySoundToken OpenParenToken file = singleExpression CommaToken wait = singleExpression CommaToken loop = singleExpression CloseParenToken; //(string file, boolean wait, boolean loop)
 stopSoundStatement: StopSoundToken;
@@ -94,17 +94,17 @@ switchCaseStatement:
 	CloseBraceToken;
 
 switchStatement : SwitchToken OpenParenToken switchConditionStatement = statement CloseParenToken;
-caseStatement : CaseToken OpenParenToken caseValue = literal CloseParenToken code = statement;
-defaultStatement : DefaultToken code = statement;
+caseStatement : CaseToken OpenParenToken caseValue = literal CloseParenToken code = codeBlock;
+defaultStatement : DefaultToken code = codeBlock;
 
 waitStatement: WaitToken code = statement;
-showMenuStatement: ShowMenuToken menuArguments = arguments code = statement;
+showMenuStatement: ShowMenuToken menuArguments = arguments code = codeBlock;
 startTransactionStatement: StartTransactionToken OpenParenToken command = StringLiteralToken CloseParenToken;
 
 ifConditionStatement: OpenParenToken condition = expressionSequence CloseParenToken;
-ifStatement : IfToken conditionStatement = ifConditionStatement code = statement elseIfStatement* elseStatement?;
-elseIfStatement : ElseIfToken conditionStatement = ifConditionStatement code = statement;
-elseStatement : ElseToken code = statement;
+ifStatement : IfToken conditionStatement = ifConditionStatement code = codeBlock elseIfStatement* elseStatement?;
+elseIfStatement : ElseIfToken conditionStatement = ifConditionStatement code = codeBlock;
+elseStatement : ElseToken code = codeBlock;
 
 continueStatement : ContinueToken;
 breakStatement : BreakToken;
@@ -113,15 +113,15 @@ returnStatement : ReturnToken OpenParenToken (returnValue = singleExpression)? C
 
 expressionStatement : {this.NotOpenBraceToken()}? expressionSequence;
 iterationStatement
-    : DoToken code = statement WhileToken OpenParenToken condition = expressionSequence CloseParenToken   # DoStatement
-    | WhileToken OpenParenToken condition = expressionSequence CloseParenToken code = statement   # WhileStatement
+    : DoToken code = codeBlock WhileToken OpenParenToken condition = expressionSequence CloseParenToken   # DoStatement
+    | WhileToken OpenParenToken condition = expressionSequence CloseParenToken code = codeBlock   # WhileStatement
     | ForEachToken OpenParenToken iterationVariable = IdentifierToken ':' 
 								  enumerationVariable = IdentifierToken 
-				   CloseParenToken code = statement   # ForEachStatement
+				   CloseParenToken code = codeBlock   # ForEachStatement
     | ForToken OpenParenToken iterationVariable = IdentifierToken CommaToken 
 							  iterationStart = IntegerLiteralToken CommaToken 
 							  iterationEnd = IntegerLiteralToken 
-			   CloseParenToken code = statement   # ForStatement
+			   CloseParenToken code = codeBlock   # ForStatement
     ;
 
 finishStatement: FinishToken;
@@ -146,7 +146,7 @@ arguments
 
 //base expression that allows recursive traversal
 singleExpression :
-      literal																												# LiteralExpression
+      val = literal																											# LiteralExpression
     | OpenParenToken expression = expressionSequence CloseParenToken														# ParenthesizedExpression
     | member = singleExpression '.' property = identifierName																# MemberDotExpression
     | '++' {this.NotLineTerminator();} unaryExpression = singleExpression													# PreIncrementExpression
@@ -155,18 +155,18 @@ singleExpression :
     | unaryExpression = singleExpression {this.NotLineTerminator();} '--'													# PostDecreaseExpression
     | '+' unaryExpression = singleExpression																				# UnaryPlusExpression
     | '-' unaryExpression = singleExpression																				# UnaryMinusExpression
-    | 'not' negatedExpression = singleExpression																			# NotExpression
-    | lvalue = singleExpression ('*' | '/' | '%') rvalue = singleExpression													# MultiplicativeExpression
-    | lvalue = singleExpression ('+' | '-') rvalue = singleExpression														# AdditiveExpression
-    | lvalue = singleExpression ('<' | '>' | '<=' | '>=') rvalue = singleExpression											# RelationalExpression
-    | lvalue = singleExpression '!='  rvalue = singleExpression																# InequalityExpression
-    | lvalue = singleExpression 'and' rvalue = singleExpression																# LogicalAndExpression
-    | lvalue = singleExpression 'or' rvalue = singleExpression																# LogicalOrExpression
+    | NotToken negatedExpression = singleExpression																			# NotExpression
     | condition = singleExpression '?' firstValue = singleExpression ':' secondValue = singleExpression						# TernaryExpression
+    | functionExpression = singleExpression arguments																		# FunctionCallExpression
+    | lvalue = singleExpression op = ('*' | '/' | '%') rvalue = singleExpression											# MultiplicativeExpression
+    | lvalue = singleExpression op = ('+' | '-') rvalue = singleExpression													# AdditiveExpression
     | lvalue = singleExpression '=' rvalue = singleExpression																# AssignmentOrEqualityExpression
-    | lvalue = singleExpression '=>' rvalue = statement																		# ScriptAssignmentExpression
+    | lvalue = singleExpression '!='  rvalue = singleExpression																# InequalityExpression
+    | lvalue = singleExpression op = ('<' | '>' | '<=' | '>=') rvalue = singleExpression									# RelationalExpression
+    | lvalue = singleExpression AndToken rvalue = singleExpression															# LogicalAndExpression
+    | lvalue = singleExpression OrToken rvalue = singleExpression															# LogicalOrExpression
+    | lvalue = singleExpression ScriptAssignToken rvalue = statement														# ScriptAssignmentExpression
     | lvalue = singleExpression assignmentOperator rvalue = singleExpression												# CalculationAndAssignmentOperatorExpression
-    | functionExpression = singleExpression args = arguments																# FunctionCallExpression
     | indexExpression = singleExpression '[' indexerExpression = expressionSequence ']'										# MemberIndexExpression
     | arrayLiteral																											# ArrayLiteralExpression
     | ThisToken																												# ThisExpression
@@ -238,8 +238,15 @@ keyword :
 	| SetTimerScriptToken
 	| SetTurnScriptToken
 	| SetTurnTimeoutToken
+	| AndToken
+	| OrToken
+	| NotToken
     ;
 
+AndToken:							 'and';
+OrToken:							 'or';
+NotToken:						     'not';
+ScriptAssignToken:					 '=>';
 CloseParenToken:					 ')';
 OpenParenToken:						 '(';
 CommaToken:							 ',';

@@ -19,16 +19,23 @@ namespace QuestScriptParser.Tryouts
 
         static void Main(string[] args)
         {
-            var parser = GenerateParserForScript(@" x++ ");
+            var parser = GenerateParserForScript(@" firsttime { { someFunc(""Foo!!"", 3, 5.32, 'a', [3  ,  4, 5    ]) obj.member = foo()
+           
+        if(foo.bar(3.14) > z)
+           DoCoolStuff()
+    if( x = foo.bar(12) and  u > foo.bar(3.14))
+DoSomeOtherCoolStuff()
+AndSomeMoreStuff()
+}
+}");
             
             var scriptTree = parser.script();
-            var treeAsString = scriptTree.ToStringTree(parser);
-            Console.WriteLine(treeAsString);
-            //var treeToStringVisitor = new StringQuestScriptVisitor();
-            //treeToStringVisitor.Visit(scriptTree);
-            //var formattedCode = treeToStringVisitor.Output;
 
-            //Console.WriteLine(formattedCode);
+            var treeToStringVisitor = new StringQuestScriptVisitor();
+            treeToStringVisitor.Visit(scriptTree);
+            var formattedCode = treeToStringVisitor.Output;
+
+            Console.WriteLine(formattedCode);
         }
     }
 }
