@@ -64,6 +64,14 @@ statement
     | waitStatement
     | askStatement
 	| switchCaseStatement	
+	| listMutationStatement
+	| dictionaryMutationStatement
+	| setTimeoutStatement
+	| setTimeoutIdStatement
+	| setTimerScriptStatement
+	| setTurnScriptStatement
+	| setTurnTimeoutStatement
+	| setTurnTimeoutIdStatement
     ;
  
 blockStatement : OpenBraceToken blockStatements = statementList? CloseBraceToken;
@@ -91,7 +99,7 @@ defaultStatement : DefaultToken code = statement;
 
 waitStatement: WaitToken code = statement;
 showMenuStatement: ShowMenuToken menuArguments = arguments code = statement;
-startTransactionStatement: StartTransactionToken OpenParenToken StringLiteralToken CloseParenToken;
+startTransactionStatement: StartTransactionToken OpenParenToken command = StringLiteralToken CloseParenToken;
 
 ifConditionStatement: OpenParenToken condition = expressionSequence CloseParenToken;
 ifStatement : IfToken conditionStatement = ifConditionStatement code = statement elseIfStatement* elseStatement?;
@@ -117,8 +125,17 @@ iterationStatement
     ;
 
 finishStatement: FinishToken;
+ 
+listMutationStatement: ListToken op = (AddToken | RemoveToken) args = arguments;
+dictionaryMutationStatement: DictionaryToken op = (AddToken | RemoveToken) args = arguments;
 
-//statement elements
+setTimeoutStatement : SetTimeoutToken OpenParenToken interval = singleExpression CloseParenToken code = blockStatement;
+setTimeoutIdStatement : SetTimeoutIDToken OpenParenToken interval = singleExpression CommaToken name = singleExpression CloseParenToken  code = blockStatement;
+setTimerScriptStatement: SetTimerScriptToken OpenParenToken timerScript = singleExpression CloseParenToken code = blockStatement;
+setTurnScriptStatement: SetTurnScriptToken OpenParenToken turnScript = singleExpression CloseParenToken code = blockStatement;
+setTurnTimeoutStatement: SetTurnTimeoutToken OpenParenToken turnCount = singleExpression CloseParenToken code = blockStatement;
+setTurnTimeoutIdStatement: SetTurnTimeoutIDToken OpenParenToken turnCount = singleExpression CommaToken name = singleExpression CloseParenToken code = blockStatement;
+
 expressionSequence  : sequenceExpressions += singleExpression (CommaToken sequenceExpressions += singleExpression)*;
 
 arguments
@@ -212,6 +229,15 @@ keyword :
     | CloneToken
 	| ElseIfToken
 	| PictureToken
+	| ListToken
+	| DictionaryToken
+	| AddToken
+	| RemoveToken
+	| SetTimeoutToken
+	| SetTimeoutIDToken
+	| SetTimerScriptToken
+	| SetTurnScriptToken
+	| SetTurnTimeoutToken
     ;
 
 CloseParenToken:					 ')';
@@ -251,6 +277,16 @@ WhileToken:                          'while';
 ThisToken:                           'this';
 CreateToken:                         'create';
 ForEachToken:                        'foreach';
+ListToken:							 'list';
+DictionaryToken:					 'dictionary';
+AddToken:						     'add';
+RemoveToken:						 'remove';
+SetTimeoutToken:				     'SetTimeout';
+SetTimeoutIDToken:				     'SetTimeoutID';
+SetTimerScriptToken:				 'SetTimerScript';
+SetTurnScriptToken:					 'SetTurnScript';
+SetTurnTimeoutToken:				 'SetTurnTimeout';
+SetTurnTimeoutIDToken:				 'SetTurnTimeoutID';
 
 NullLiteralToken : 'null';
 BooleanLiteralToken : 'true' | 'false';
