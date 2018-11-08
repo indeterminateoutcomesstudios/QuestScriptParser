@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
@@ -16,27 +17,35 @@ namespace QuestScriptParser
 
         public override bool VisitBlockStatement(QuestScriptParser.BlockStatementContext context)
         {
-            _output.AppendLine($"{Environment.NewLine}{Whitespaces}{{");
-            _currentIndentation++;
+            var hasCodeBlockAsParent = context.Parent is QuestScriptParser.CodeBlockContext;
+            _output.AppendLine($"{(!hasCodeBlockAsParent ? Environment.NewLine : string.Empty)}{Whitespaces}{{");
+            
+            if(!hasCodeBlockAsParent)
+                _currentIndentation++;
             VisitStatementList(context.blockStatements);
-            _currentIndentation--;
-            _output.Append($"{Whitespaces}}}{Environment.NewLine}");
+            if(!hasCodeBlockAsParent)
+                _currentIndentation--;
+            _output.Append($"{Whitespaces}}}");
 
             return true;
         }
 
         public override bool VisitCodeBlock(QuestScriptParser.CodeBlockContext context)
         {
-            _currentIndentation++;
-            _output.Append($"{Environment.NewLine}{Whitespaces}");
+            var hasBlockStatementAsChild = context.children.Any(x => x is QuestScriptParser.BlockStatementContext);
+            if(!hasBlockStatementAsChild)
+                _currentIndentation++;
+            _output.Append($"{(hasBlockStatementAsChild ? Environment.NewLine : string.Empty)}{Whitespaces}");
             base.VisitCodeBlock(context);
-            _currentIndentation--;
+            if(!hasBlockStatementAsChild)
+                _currentIndentation--;
             return true;
         }
 
         public override bool VisitScriptAssignmentExpression(QuestScriptParser.ScriptAssignmentExpressionContext context)
         {
-            _output.AppendFormat("{0} {1} ",context.lvalue.GetText(), context.ScriptAssignToken().GetText());
+            context.lvalue.Accept(this);
+            _output.AppendFormat(" {0} ",context.ScriptAssignToken().GetText());
             VisitStatement(context.rvalue); //this will continue "printing" the statement            
             return true;
         }
@@ -69,11 +78,9 @@ namespace QuestScriptParser
         private bool PrintBooleanExpression(QuestScriptParser.SingleExpressionContext lvalue, string op,
             QuestScriptParser.SingleExpressionContext rvalue)
         {    
-            base.VisitSingleExpression(lvalue);
+            lvalue.Accept(this);
             _output.Append($" {op} ");
-            base.VisitSingleExpression(rvalue);
-
-            var str = _output.ToString();
+            rvalue.Accept(this);
             return true;
         }
 
@@ -92,7 +99,7 @@ namespace QuestScriptParser
                     _output.AppendFormat("{0}{1}", Environment.NewLine, Whitespaces);
                 }
 
-                base.VisitStatement(context._statements[i]);
+                context._statements[i].Accept(this);
             }
 
             _output.AppendLine();
@@ -102,11 +109,7 @@ namespace QuestScriptParser
       
         public override bool VisitAssignmentOrEqualityExpression(QuestScriptParser.AssignmentOrEqualityExpressionContext context)
         {
-            base.VisitSingleExpression(context.lvalue);
-            _output.Append(" = ");
-            base.VisitSingleExpression(context.rvalue);
-
-            return true;
+            return PrintBooleanExpression(context.lvalue,"=",context.rvalue);
         }
 
         public override bool VisitChildren(IRuleNode node)
@@ -138,12 +141,12 @@ namespace QuestScriptParser
             var args = context.arguments()._argumentExpressions;
             for (var index = 0; index < args.Count - 1; index++)
             {
-                base.VisitSingleExpression(args[index]);
+                args[index].Accept(this);
                 _output.Append(", ");
             }
             
             if(args.Count > 0)
-                base.VisitSingleExpression(args[args.Count - 1]);
+                args[args.Count - 1].Accept(this);
 
             _output.Append(')');
             return true;
@@ -155,12 +158,13 @@ namespace QuestScriptParser
             _output.Append('[');
             for (int i = 0; i < elements.Count - 1; i++)
             {
-                base.VisitSingleExpression(elements[i]);
+                elements[i].Accept(this);
                 _output.Append(", ");
             }
 
             if(elements.Count > 0)
-                base.VisitSingleExpression(elements[elements.Count - 1]);
+                elements[elements.Count - 1].Accept(this);
+
 
             _output.Append(']');
             return true;
