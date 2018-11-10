@@ -10,21 +10,20 @@ namespace QuestScriptParser
 {
     public class StringQuestScriptVisitor : QuestScriptBaseVisitor<bool>
     {
-        private int _currentIndentation = 0;
-        private string Whitespaces =>  new string(' ',_currentIndentation * 2);
+        private int _currentIndentation;
+        private string Whitespaces =>  new string(' ',_currentIndentation);
         private readonly StringBuilder _output = new StringBuilder();
         public string Output => _output.ToString();
 
         public override bool VisitBlockStatement(QuestScriptParser.BlockStatementContext context)
         {
-            var hasCodeBlockAsParent = context.Parent is QuestScriptParser.CodeBlockContext;
-            _output.AppendLine($"{(!hasCodeBlockAsParent ? Environment.NewLine : string.Empty)}{Whitespaces}{{");
+            var hasCodeBlockAsParent = context.parent.parent is QuestScriptParser.CodeBlockContext;
+            _output.Append($"{(hasCodeBlockAsParent ? string.Empty : Environment.NewLine)}{(!hasCodeBlockAsParent ? Whitespaces : string.Empty)}{{{Environment.NewLine}");
             
-            if(!hasCodeBlockAsParent)
-                _currentIndentation++;
-            VisitStatementList(context.blockStatements);
-            if(!hasCodeBlockAsParent)
-                _currentIndentation--;
+            _currentIndentation++;
+            context.blockStatements.Accept(this);
+            _currentIndentation--;
+
             _output.Append($"{Whitespaces}}}");
 
             return true;
@@ -32,13 +31,21 @@ namespace QuestScriptParser
 
         public override bool VisitCodeBlock(QuestScriptParser.CodeBlockContext context)
         {
-            var hasBlockStatementAsChild = context.children.Any(x => x is QuestScriptParser.BlockStatementContext);
+            var hasBlockStatementAsChild = HasAnyChildOfType<QuestScriptParser.BlockStatementContext>(context);
+
             if(!hasBlockStatementAsChild)
                 _currentIndentation++;
-            _output.Append($"{(hasBlockStatementAsChild ? Environment.NewLine : string.Empty)}{Whitespaces}");
-            base.VisitCodeBlock(context);
+
+            _output.Append($"{Environment.NewLine}{Whitespaces}");
+
+            foreach (var child in context.children)
+            {
+                child.Accept(this);
+            }
+
             if(!hasBlockStatementAsChild)
                 _currentIndentation--;
+         
             return true;
         }
 
@@ -168,6 +175,24 @@ namespace QuestScriptParser
 
             _output.Append(']');
             return true;
+        }
+
+        private bool HasAnyChildOfType<TChild>(ParserRuleContext context)
+            where TChild : ParserRuleContext
+        {
+            if (context == null)
+                return false;
+            foreach (var child in context.children)
+            {
+                if (child.GetType().Name == typeof(TChild).Name)
+                    return true;
+                if (child.GetType().Name == typeof(ParserRuleContext).Name)
+                    return false;
+                if (HasAnyChildOfType<TChild>(child as ParserRuleContext))
+                    return true;
+            }
+
+            return false;
         }
     }
 }

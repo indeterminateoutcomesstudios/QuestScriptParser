@@ -147,7 +147,7 @@ arguments
 //base expression that allows recursive traversal
 singleExpression :
       val = literal																											# LiteralExpression
-    | OpenParenToken expression = expressionSequence CloseParenToken														# ParenthesizedExpression
+    | OpenParenToken expression = singleExpression CloseParenToken															# ParenthesizedExpression
     | member = singleExpression '.' property = identifierName																# MemberDotExpression
     | '++' {this.NotLineTerminator();} unaryExpression = singleExpression													# PreIncrementExpression
     | '--' {this.NotLineTerminator();} unaryExpression = singleExpression													# PreDecreaseExpression
