@@ -17,7 +17,6 @@ statement:
 	|	switchCaseStatement
     ;
 
-
 switchCaseStatement: 
 	switch = switchStatement
 	'{' 
@@ -200,7 +199,7 @@ fragment Letter : [A-Za-z];
 fragment NonZeroDigit: [1-9];
 fragment Digit: [0-9];
 
-Whitespace: [ \t]+ -> channel(HIDDEN);
+Whitespace: [ \t]+ -> skip;
 Comment: '/*' .*? '*/' -> channel(HIDDEN);
-LineTerminator: [\r\n]+ -> channel(HIDDEN);
+LineTerminator: [\r\n]+ -> skip;
 LineComment: '//' ~[\r\n]* -> channel(HIDDEN);
