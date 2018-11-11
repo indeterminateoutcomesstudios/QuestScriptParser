@@ -17,24 +17,52 @@ namespace QuestScriptParser.Tryouts
 
         static void Main(string[] args)
         {
-            var parser = GenerateParserForScript(@" firsttime { x.a=>
+            var parser = GenerateParserForScript(@" 
+foo()  bar() x = 3
+
+firsttime { x.a=>
 { someFunc(""Foo!!"", 3, 5.32, ""a"", [3  ,  4, 5    ]) obj.member = foo()
            
         if(foo.bar(3.14) > z)
            DoCoolStuff()
+elseif (x = 4)
+    y = 5
+else
+aaa()
     if( x = foo.bar(12) and  
 
 
 func1(func2(func3())) > x.foobar(""b""))
 //mya mya
 {
-DoSomeOtherCoolStuff()
-AndSomeMoreStuff()
+DoSomeOtherCoolStuff()  AndSomeMoreStuff()
+
 }
+elseif(x < 4){
+        abc()
+}
+else{
+    myaa()
+}
+
 MegaStuff()
 }
 }
 
+while(not(x>     5)   and (                    x <= y     )){
+    foo.bar = xyz(3,   4,5)
+}
+
+switch(x != 3 and y > foobar()){
+    case(3){
+    zz = 234.44
+}
+            case(234)
+    foobar()
+default{
+    ask(""why?""){ xyz = 3 }
+}
+}
 ");
             
             var scriptTree = parser.script();

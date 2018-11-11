@@ -14,23 +14,131 @@ namespace QuestScriptParser
 
         public override bool VisitStatement(QuestScriptParser.StatementContext context)
         {
-            _output.AppendLine();
+            _output.Append(Whitespaces);
             VisitChildren(context);
+
+            _output.AppendLine();
+            return true;
+        }
+
+
+
+        public override bool VisitIfStatement(QuestScriptParser.IfStatementContext context)
+        {
+            _output.Append("if(");
+            context.condition.Accept(this);
+            if (context.ifCode.codeBlockStatement() == null)
+            {
+                _output.AppendFormat("){0}{1}", Environment.NewLine, Whitespaces);
+            }
+            else
+            {
+                _output.AppendFormat("){0}",Whitespaces);
+            }
+            context.ifCode.Accept(this);
+
+            if (context._elseIfCodes.Count > 0)
+            {
+                for (var i = 0; i < context._elseIfCodes.Count; i++)
+                {
+                    var ifElseCondition = context._elseifConditions[i];
+                    var ifElseCode = context._elseIfCodes[i];
+
+                    _output.AppendFormat("{0}elseif(",Whitespaces);
+                    ifElseCondition.Accept(this);
+
+                    if (ifElseCode.codeBlockStatement() == null)
+                    {
+                        _output.AppendFormat("){0}{1}", Environment.NewLine, Whitespaces);
+                    }
+                    else
+                    {
+                        _output.AppendFormat("){0}",Whitespaces);
+                    }
+
+                    ifElseCode.Accept(this);
+
+                }
+            }
+
+            if (context.elseCode != null)
+            {
+                _output.AppendFormat("{0}else",Whitespaces);
+                if (context.elseCode.codeBlockStatement() == null)
+                {
+                    _output.AppendFormat("{0}{1}", Environment.NewLine, Whitespaces);
+                }
+                else
+                {
+                    _output.AppendFormat("{0}",Whitespaces);
+                }
+                context.elseCode.Accept(this);
+            }
+
+            return true;
+        }
+
+        public override bool VisitAssignmentStatement(QuestScriptParser.AssignmentStatementContext context)
+        {
+            context.LVal.Accept(this);
+            _output.Append(" = ");
+            context.RVal.Accept(this);
+
+            return true;
+        }
+
+        public override bool VisitScriptAssignmentStatement(QuestScriptParser.ScriptAssignmentStatementContext context)
+        {
+            context.LVal.Accept(this);
+            _output.Append(" => ");
+            context.RVal.Accept(this);
+
+            return true;
+        }
+
+        private void PrintBoolean(RuleContext left, string op, RuleContext right)
+        {
+            left.Accept(this);
+            _output.AppendFormat(" {0} ", op);
+            right.Accept(this);
+        }
+
+        public override bool VisitRelationalExpression(QuestScriptParser.RelationalExpressionContext context)
+        {
+            PrintBoolean(context.left,context.op.GetText(),context.right);
+            return true;
+        }
+
+        public override bool VisitLogicalExpression(QuestScriptParser.LogicalExpressionContext context)
+        {
+            PrintBoolean(context.left,context.op.GetText(),context.right);
+            return true;
+        }
+
+        public override bool VisitNotExpression(QuestScriptParser.NotExpressionContext context)
+        {
+            _output.AppendFormat("not ");
+            context.expr.Accept(this);
+            return true;
+        }
+
+        public override bool VisitArithmeticExpression(QuestScriptParser.ArithmeticExpressionContext context)
+        {
+            PrintBoolean(context.left,context.op.GetText(),context.right);
             return true;
         }
 
         public override bool VisitCodeBlockStatement(QuestScriptParser.CodeBlockStatementContext context)
         {
-            _output.AppendFormat("{0}{1}{{",Whitespaces,Environment.NewLine);
+            _output.AppendFormat("{1}{0}{{{1}",Whitespaces,Environment.NewLine);
             _currentIndentation++;
-
             foreach (var ctx in context._statements)
             {
                 ctx.Accept(this);
             }
 
             _currentIndentation--;
-            _output.AppendFormat("{0}{1}}}{1}",Whitespaces,Environment.NewLine);
+            _output.AppendFormat("{0}}}",Whitespaces);
             return true;
         }
 
@@ -53,24 +161,6 @@ namespace QuestScriptParser
                 }
             }
             return true;
-        }
-
-        private bool HasAnyChildOfType<TChild>(ParserRuleContext context)
-            where TChild : ParserRuleContext
-        {
-            if (context == null)
-                return false;
-            foreach (var child in context.children)
-            {
-                if (child.GetType().Name == typeof(TChild).Name)
-                    return true;
-                if (child.GetType().Name == typeof(ParserRuleContext).Name)
-                    return false;
-                if (HasAnyChildOfType<TChild>(child as ParserRuleContext))
-                    return true;
-            }
-
-            return false;
         }
     }
 }

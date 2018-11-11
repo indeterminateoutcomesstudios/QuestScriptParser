@@ -49,12 +49,12 @@ iterationStatement
 
 ifStatement:
     'if' '(' condition = expression ')'
-        (ifCode = statement | ifCodeBlock = codeBlockStatement)
-    ('elseif' '(' elseifCondition = expression ')'
-        (elseIfCode = statement | elseIfCodeBlock = codeBlockStatement)
+        ifCode = statement
+    ('elseif' '(' elseifConditions += expression ')'
+        elseIfCodes += statement
     )*
     ('else'
-        (elseIfCode = statement | elseIfCodeBlock = codeBlockStatement)
+        elseCode = statement
     )?
 
     ;
@@ -70,9 +70,9 @@ firsttimeStatement: 'firsttime' firstTimeScript = codeBlockStatement ('otherwise
 
 functionStatement: functionName = Identifier '(' argumentsList ')';
 
-assignmentStatement: lValue '=' expression;
+assignmentStatement: LVal = lValue '=' RVal = expression;
 
-scriptAssignmentStatement: lValue '=>' codeBlockStatement;
+scriptAssignmentStatement: LVal = lValue '=>' RVal = codeBlockStatement;
 
 arrayLiteral : '[' (elements += expression (',' elements += expression)*)? ']';
 
@@ -84,7 +84,7 @@ expression:
     |   left = expression op = relationalOp right = expression  #RelationalExpression
     |   left = expression op = logicalOp right = expression     #LogicalExpression
     |   left = expression op = arithmeticOp right = expression  #ArithmeticExpression
-    |   Not expression                                          #NotExpression
+    |   Not expr = expression                                   #NotExpression
     |   op = unaryOp expr = expression                          #PrefixUnaryExpression
     |   expr = expression op = (PlusPlus|MinusMinus)            #PostfixUnaryExpression
 	|	arrayLiteral											#ArrayLiteralExpression
