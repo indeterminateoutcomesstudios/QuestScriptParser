@@ -26,15 +26,14 @@ statement
     ;
 
 switchCaseStatement: 
-	switch = switchStatement
+	'switch' LeftParen switchConditionStatement = expression RightParen
 	'{' 
 		cases += caseStatement* 
 		defaultContext = defaultStatement? 
 	'}'; 
 
-switchStatement : 'switch' LeftParen switchConditionStatement = expression RightParen;
-caseStatement : 'case' LeftParen caseValue = literal RightParen code = codeBlockStatement;
-defaultStatement : 'default' code = codeBlockStatement;
+caseStatement : 'case' LeftParen caseValue = literal RightParen code = statement;
+defaultStatement : 'default' code = statement;
 
 returnStatement: 'return' (LeftParen expression? RightParen)?;
 
@@ -227,5 +226,5 @@ fragment Digit: [0-9];
 Whitespace: (' '|'\t') -> skip;
 Comment: '/*' .*? '*/' -> channel(HIDDEN);
 LineComment: '//' ~[\r\n]* -> channel(HIDDEN);
-Newline: '\r'? '\n';
-IgnoreNewline: '\r'? '\n' {nesting>0}? -> skip;
+Newline: '\r'? '\n' -> skip;
+//IgnoreNewline: '\r'? '\n' {nesting>0}? -> skip;
