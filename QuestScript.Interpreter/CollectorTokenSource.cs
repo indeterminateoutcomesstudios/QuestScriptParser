@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using Antlr4.Runtime;
+using Microsoft.CodeAnalysis.CSharp.Scripting;
+using Microsoft.CSharp;
 using QuestScript.Parser;
 namespace QuestScript.Interpreter
 {
@@ -25,7 +27,7 @@ namespace QuestScript.Interpreter
                 _commentTokens.Add(next);
                 next = _source.NextToken();
             }
-
+            
             return next;
         }
 

@@ -5,11 +5,10 @@ grammar QuestScript;
 	int nesting = 0;
 }
 
-
 script: (statement)* EOF;
  
 statement	
-	locals [HashSet<string> scopeSymbols = new HashSet<string>()]
+	locals [HashSet<string> symbolsInScope = new HashSet<string>()]
 	:
         functionStatement
     |   assignmentStatement
@@ -45,12 +44,12 @@ iterationStatement
     | 'while' LeftParen condition = expression RightParen code = codeBlockStatement        #WhileStatement
     | 'foreach' LeftParen iterationVariable = Identifier ':'
 				    enumerationVariable = expression RightParen
-					{ $statement::scopeSymbols.Add($iterationVariable.text); }
+					{ $statement::symbolsInScope.Add($iterationVariable.text); }
 				        code = codeBlockStatement                             #ForEachStatement
     | 'for' LeftParen iterationVariable = Identifier ','
 							  iterationStart = IntegerLiteral ','
 							  iterationEnd = IntegerLiteral
-			  { $statement::scopeSymbols.Add($iterationVariable.text); }
+			  { $statement::symbolsInScope.Add($iterationVariable.text); }
 			  RightParen code = codeBlockStatement                                   #ForStatement
     ;
 
@@ -78,16 +77,7 @@ firsttimeStatement: 'firsttime' firstTimeScript = codeBlockStatement ('otherwise
 
 functionStatement: functionName = Identifier LeftParen argumentsList RightParen;
 
-assignmentStatement: LVal = lValue '=' RVal = expression
-					{
-						var lValueText = $lValue.text;
-						if(!string.IsNullOrWhiteSpace(lValueText))
-						{
-						   if(!lValueText.Contains("."))
-							  $statement::scopeSymbols.Add(lValueText);
-						}
-					}
-					;
+assignmentStatement: LVal = lValue '=' RVal = expression { $statement::symbolsInScope.Add($LVal.text); };
 
 scriptAssignmentStatement: LVal = lValue  '=>' RVal = codeBlockStatement;
 

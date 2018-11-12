@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Antlr4.Runtime;
+using Microsoft.CodeAnalysis.CSharp.Scripting;
 using QuestScript.Interpreter;
 using QuestScript.Parser;
 
@@ -74,9 +75,10 @@ default{
 
             var treeToStringVisitor = new StringQuestScriptVisitor();
             treeToStringVisitor.Visit(scriptTree);
-            var formattedCode = treeToStringVisitor.Output;
+            var formattedCode = treeToStringVisitor.Output;         
 
             Console.WriteLine(formattedCode);
+            Console.WriteLine(CSharpScript.EvaluateAsync<bool>("4 == 5").Result);
         }
     }
 }
