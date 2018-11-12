@@ -22,7 +22,59 @@ namespace QuestScript.Interpreter
             return true;
         }
 
+        public override bool VisitSwitchCaseStatement(QuestScriptParser.SwitchCaseStatementContext context)
+        {
+            _output.Append("switch (");
+            context.switchConditionStatement.Accept(this);
+            _output.AppendFormat("){0}{{{0}",Environment.NewLine);
+            _currentIndentation++;
 
+            foreach (var caseStatement in context._cases)
+            {
+                caseStatement.Accept(this);
+            }
+
+            context.defaultContext?.Accept(this);
+
+            _currentIndentation--;
+
+            _output.AppendFormat("}}{0}", Environment.NewLine);
+            return true;
+        }
+
+        public override bool VisitCaseStatement(QuestScriptParser.CaseStatementContext context)
+        {
+            _output.AppendFormat("{1}case ({0}", context.caseValue.GetText(),Whitespaces);
+
+            if (context.code.codeBlockStatement() == null)
+            {
+                _output.AppendFormat("){0}{1}", Environment.NewLine, Whitespaces);
+            }
+            else
+            {
+                _output.AppendFormat("){0}", Whitespaces);
+            }
+
+            context.code.Accept(this);
+
+            return true;
+        }
+
+        public override bool VisitDefaultStatement(QuestScriptParser.DefaultStatementContext context)
+        {
+            _output.AppendFormat("{0}default", Whitespaces);
+            if (context.code.codeBlockStatement() == null)
+            {
+                _output.AppendFormat("{0}{1}", Environment.NewLine, Whitespaces);
+            }
+            else
+            {
+                _output.Append(Whitespaces);
+            }
+
+            context.code.Accept(this);
+            return true;
+        }
 
         public override bool VisitIfStatement(QuestScriptParser.IfStatementContext context)
         {

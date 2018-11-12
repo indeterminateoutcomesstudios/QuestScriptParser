@@ -191,6 +191,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CollectorTokenSource.cs" />
+    <Compile Include="FunctionInfo.cs" />
+    <Compile Include="Interpreter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StringQuestScriptVisitor.cs" />
   </ItemGroup>

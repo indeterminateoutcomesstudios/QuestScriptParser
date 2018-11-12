@@ -78,7 +78,9 @@ default{
             var formattedCode = treeToStringVisitor.Output;         
 
             Console.WriteLine(formattedCode);
-            Console.WriteLine(CSharpScript.EvaluateAsync<bool>("4 == 5").Result);
+
+            var testScript = CSharpScript.Create<bool>("4 == 5");
+            Console.WriteLine(testScript.RunAsync().Result.ReturnValue);
         }
     }
 }
