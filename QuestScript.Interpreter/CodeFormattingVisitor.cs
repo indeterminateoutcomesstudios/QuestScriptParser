@@ -6,7 +6,8 @@ using QuestScript.Parser;
 
 namespace QuestScript.Interpreter
 {
-    public class StringQuestScriptVisitor : QuestScriptBaseVisitor<bool>
+    //TODO: figure out how NOT to delete comments (currently they are output to HIDDEN channel by the lexer)
+    public class CodeFormattingVisitor : QuestScriptBaseVisitor<bool>
     {
         private int _currentIndentation;
         private string Whitespaces => new string(' ', _currentIndentation);

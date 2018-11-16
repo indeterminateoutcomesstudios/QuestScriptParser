@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
 using Antlr4.Runtime;
-using Microsoft.CodeAnalysis.CSharp.Scripting;
-using Microsoft.CSharp;
 using QuestScript.Parser;
-namespace QuestScript.Interpreter
+
+namespace QuestScript.Interpreter.Helpers
 {
     //credit for implementation ideas : http://meri-stuff.blogspot.com/2012/09/tackling-comments-in-antlr-compiler.html
     public class CollectorTokenSource : ITokenSource

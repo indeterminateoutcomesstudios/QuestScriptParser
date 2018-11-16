@@ -7,8 +7,7 @@ grammar QuestScript;
 
 script: (statement)* EOF;
  
-statement	
-	locals [HashSet<string> symbolsInScope = new HashSet<string>()]
+statement
 	:
         functionStatement
     |   assignmentStatement
@@ -22,6 +21,8 @@ statement
     |   breakStatement
     |   returnStatement
 	|	switchCaseStatement
+	|	postfixUnaryStatement
+	|	prefixUnaryStatement
     ;
 
 switchCaseStatement: 
@@ -44,13 +45,11 @@ iterationStatement
     | 'while' LeftParen condition = expression RightParen code = codeBlockStatement        #WhileStatement
     | 'foreach' LeftParen iterationVariable = Identifier ':'
 				    enumerationVariable = expression RightParen
-					{ $statement::symbolsInScope.Add($iterationVariable.text); }
-				        code = codeBlockStatement                             #ForEachStatement
+				        code = statement                             #ForEachStatement
     | 'for' LeftParen iterationVariable = Identifier ','
 							  iterationStart = IntegerLiteral ','
 							  iterationEnd = IntegerLiteral
-			  { $statement::symbolsInScope.Add($iterationVariable.text); }
-			  RightParen code = codeBlockStatement                                   #ForStatement
+			  RightParen code = statement                                   #ForStatement
     ;
 
 
@@ -77,11 +76,14 @@ firsttimeStatement: 'firsttime' firstTimeScript = codeBlockStatement ('otherwise
 
 functionStatement: functionName = Identifier LeftParen argumentsList RightParen;
 
-assignmentStatement: LVal = lValue '=' RVal = expression { $statement::symbolsInScope.Add($LVal.text); };
+assignmentStatement: LVal = lValue '=' RVal = expression;
 
 scriptAssignmentStatement: LVal = lValue  '=>' RVal = codeBlockStatement;
 
 arrayLiteral : '[' (elements += expression (',' elements += expression)*)? ']';
+
+postfixUnaryStatement: expression op = (PlusPlus|MinusMinus);
+prefixUnaryStatement: op = unaryOp expr = expression;
 
 //expressions evaluate to some value...
 expression:
@@ -107,8 +109,8 @@ rValue:
 
 lValue
 	 :
-        Identifier				#IdentifierOperand	 
-    |   lValue '.' Identifier   #MemberFieldOperand
+        Identifier									#IdentifierOperand	 
+    |   instance = lValue '.' member = Identifier   #MemberFieldOperand
     ;
 
 unaryOp:
