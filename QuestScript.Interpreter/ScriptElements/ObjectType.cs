@@ -6,6 +6,8 @@
         Double,
         String,
         Object,
+        Script,
+        Boolean,
         List,
         Void
     }

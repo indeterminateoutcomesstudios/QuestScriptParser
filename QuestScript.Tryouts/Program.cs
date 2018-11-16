@@ -76,6 +76,8 @@ namespace QuestScript.Tryouts
 //");
             var parser = GenerateParserForScript(@" 
                 x = 4
+        y = 3.13
+    str = ""XYZ""
                 if(obj.member = 4) {                    
                     x = foo.bar
                 }  

@@ -142,10 +142,13 @@ arithmeticOp:
     |   '*'     #ModOp
     ;
 
-literal: numericLiteral | StringLiteral | NullLiteral | BooleanLiteral;
-
-numericLiteral: IntegerLiteral | DoubleLiteral;
-
+literal: 
+	  IntegerLiteral #IntegerLiteral
+	| DoubleLiteral  #DoubleLiteral
+	| StringLiteral	 #StringLiteral
+	| NullLiteral	 #NullLiteral 
+	| BooleanLiteral #BooleanLiteral
+	;
 
 LeftParen : '(' {nesting++;} ;
 RightParen : ')' {nesting--;} ;

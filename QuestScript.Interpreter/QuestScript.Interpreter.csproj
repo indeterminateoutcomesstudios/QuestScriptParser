@@ -200,10 +200,14 @@
     <Compile Include="ScriptElements\IDelegate.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="CodeFormattingVisitor.cs" />
+    <Compile Include="ScriptElements\IObjectTypeInfo.cs" />
     <Compile Include="SyntaxValidationVisitor.cs" />
     <Compile Include="ScriptElements\ObjectType.cs" />
     <Compile Include="ScriptElements\IObject.cs" />
+    <Compile Include="TypeCheckVisitor.cs" />
     <Compile Include="UtilExtensions.cs" />
+    <Compile Include="ValidationExceptions\InvalidTypeException.cs" />
+    <Compile Include="ValidationExceptions\UndefinedFunctionException.cs" />
     <Compile Include="ValidationExceptions\UndefinedMemberException.cs" />
     <Compile Include="ValidationExceptions\UndefinedSymbolException.cs" />
   </ItemGroup>
