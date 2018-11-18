@@ -2,13 +2,13 @@
 {
     public enum ObjectType
     {
-        Integer = 1,
+        Unknown,
+        Integer,
         Double,
         String,
         Object,
         Script,
         Boolean,
-        Unknown,
         List,
         Void,
         Null

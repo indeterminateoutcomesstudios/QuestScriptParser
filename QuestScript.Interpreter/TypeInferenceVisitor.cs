@@ -1,16 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using QuestScript.Interpreter.ScriptElements;
+﻿using QuestScript.Interpreter.ScriptElements;
 using QuestScript.Parser;
 
 namespace QuestScript.Interpreter
 {
     public class TypeInferenceVisitor : QuestScriptBaseVisitor<ObjectType>
     {
+        private readonly EnvironmentTreeBuilder _environmentBuilder;
 
+        public TypeInferenceVisitor(EnvironmentTreeBuilder environmentBuilder)
+        {
+            _environmentBuilder = environmentBuilder;
+        }
+
+        public override ObjectType VisitIdentifierOperand(QuestScriptParser.IdentifierOperandContext context)
+        {
+            //this is either an object or a variable identifier.
+            var identifier = context.GetText();
+            var variable = _environmentBuilder.GetVariableFromCurrentEnvironment(identifier);
+            
+            if (variable != null) //so this is variable...
+            {
+                return variable.Type;
+            }
+            //TODO: add here the resolving types of an object if identifier is an object (which are global in Quest)
+
+            return base.VisitIdentifierOperand(context);
+        }
 
         public override ObjectType VisitRelationalExpression(QuestScriptParser.RelationalExpressionContext context)
         {

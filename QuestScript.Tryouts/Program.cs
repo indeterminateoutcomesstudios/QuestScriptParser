@@ -12,9 +12,8 @@ namespace QuestScript.Tryouts
         {
 
             var lexer = new QuestScriptLexer(new AntlrInputStream(@" 
-                x = 4
-                while(x > 3)
-                    x++
+                x = 43.33
+                { x = 34 }
             "));
 
             //var collectorTokenSource = new CollectorTokenSource(lexer);
