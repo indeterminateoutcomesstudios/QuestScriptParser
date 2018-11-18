@@ -7,7 +7,7 @@ namespace QuestScript.Interpreter.ScriptElements
         ObjectType Type { get; }
         string TypeName { get; }
 
-        IReadOnlyList<IObject> Attributes { get; }
+        IReadOnlyList<IObjectInstance> Attributes { get; }
         IReadOnlyList<IDelegate> Delegates { get; }
 
     }

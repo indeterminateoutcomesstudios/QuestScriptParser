@@ -2,7 +2,7 @@
 
 namespace QuestScript.Interpreter.ScriptElements
 {
-    public interface IFunction : INode
+    public interface IFunction : IInstance
     {
         ObjectType ReturnType { get; }    
         IReadOnlyList<string> ParameterTypes { get; }

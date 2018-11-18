@@ -1,6 +1,7 @@
 ﻿namespace QuestScript.Interpreter.ScriptElements
 {
-    public interface IObject : IObjectTypeInfo, INode
+    public interface IInstance
     {
+        string Name { get; }
     }
 }

@@ -1,27 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Antlr4.Runtime;
-using Microsoft.CodeAnalysis.CSharp.Scripting;
 using QuestScript.Interpreter;
-using QuestScript.Interpreter.ScriptElements;
 using QuestScript.Parser;
 
 namespace QuestScript.Tryouts
 {
      class Program
     {
-        protected static QuestScriptParser GenerateParserForScript(string script)
-        {
-            var lexer = new QuestScriptLexer(new AntlrInputStream(script));
-            //var collectorTokenSource = new CollectorTokenSource(lexer);
-            var tokens = new CommonTokenStream(lexer);
-            var parser = new QuestScriptParser(tokens);
-            return parser;
-        }
-
         static void Main(string[] args)
         {
 //            var parser = GenerateParserForScript(@" 
@@ -74,50 +60,26 @@ namespace QuestScript.Tryouts
 //}
 //}
 //");
-            var parser = GenerateParserForScript(@" 
-                x = 4
-        y = 3.13
-    str = ""XYZ""
-                if(obj.member = 4) {                    
-                    x = foo.bar
-                }  
-            ");
+            var lexer = new QuestScriptLexer(new AntlrInputStream(@" 
+                x = 4 
+                z = 3
+                if(x > 0 and z = 5)
+                {
+                    y = 4.44
+                    x = 4 + (5 * y) - z
+                }
+            "));
+            //var collectorTokenSource = new CollectorTokenSource(lexer);
+            var tokens = new CommonTokenStream(lexer);
+            var parser = new QuestScriptParser(tokens);
+            var environmentTreeBuilder = new EnvironmentTreeBuilder();
+            parser.AddParseListener(environmentTreeBuilder);
             var scriptTree = parser.script();
-            //var treeToStringVisitor = new CodeFormattingVisitor();
-            //treeToStringVisitor.Visit(scriptTree);
-            //var formattedCode = treeToStringVisitor.Output;
+            //Console.WriteLine(scriptTree.ToStringTree(parser));
 
-            //Console.WriteLine(formattedCode);
+            foreach (var msg in environmentTreeBuilder.Errors.Select(e => e.Message))
+                Console.WriteLine(msg);
 
-            var syntaxValidator = new SyntaxValidationVisitor
-            {
-                DeclaredObjects = new List<IObject>
-                {
-                    new ObjectInfo("obj",ObjectType.Object,"TestObjType", new List<ObjectInfo>{ new ObjectInfo("member",ObjectType.Double,"Double") }),
-                    new ObjectInfo("foo",ObjectType.Object,"FooBarType", new List<ObjectInfo>{ new ObjectInfo("bar",ObjectType.String,"String") })
-                }
-            };
-            syntaxValidator.Visit(scriptTree);
-            foreach (var kvp in syntaxValidator.SymbolsPerContextScope)
-            {
-                if (kvp.Key is QuestScriptParser.ScriptContext)
-                {
-                    Console.WriteLine($"root context => {string.Join(",", kvp.Value)}");
-                }
-                else
-                {
-                    var text = kvp.Key.GetText();
-                    Console.WriteLine($"{text.Substring(0,Math.Min(text.Length,20))}... => {string.Join(",", kvp.Value)}");
-                }
-            }
-
-            foreach (var ex in syntaxValidator.ValidationExceptions)
-            {
-                Console.WriteLine(ex.Message);
-            }
-
-            //var testScript = CSharpScript.Create<bool>("4 == 5");
-            //Console.WriteLine(testScript.RunAsync().Result.ReturnValue);
             Console.ReadKey();
         }
     }
