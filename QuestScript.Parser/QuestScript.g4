@@ -42,7 +42,7 @@ breakStatement: Break;
 
 iterationStatement
     : 'do' code = codeBlockStatement 'while' LeftParen condition = expression RightParen   #DoStatement
-    | 'while' LeftParen condition = expression RightParen code = codeBlockStatement        #WhileStatement
+    | 'while' LeftParen condition = expression RightParen code = statement		           #WhileStatement
     | 'foreach' LeftParen iterationVariable = Identifier ':'
 				    enumerationVariable = expression RightParen
 				        code = statement                             #ForEachStatement

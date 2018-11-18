@@ -1,5 +1,4 @@
 ﻿using System;
-using Antlr4.Runtime;
 using QuestScript.Interpreter.ScriptElements;
 
 namespace QuestScript.Interpreter.InterpreterElements
@@ -8,6 +7,7 @@ namespace QuestScript.Interpreter.InterpreterElements
     {
         public string Name;
         public ObjectType Type;
-        public Func<ParserRuleContext> Value;
+        public Func<object> ValueResolver;
+        public bool IsEnumerationVariable;
     }
 }

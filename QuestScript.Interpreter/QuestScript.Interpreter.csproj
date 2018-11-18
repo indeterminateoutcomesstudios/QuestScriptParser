@@ -207,9 +207,8 @@
     <Compile Include="ScriptElements\IObjectInstance.cs" />
     <Compile Include="TypeInferenceVisitor.cs" />
     <Compile Include="UtilExtensions.cs" />
-    <Compile Include="ValidationExceptions\InvalidTypeException.cs" />
-    <Compile Include="ValidationExceptions\UndefinedFunctionException.cs" />
-    <Compile Include="ValidationExceptions\UndefinedMemberException.cs" />
+    <Compile Include="ValidationExceptions\BaseValidationException.cs" />
+    <Compile Include="ValidationExceptions\ConflictingVariableName.cs" />
     <Compile Include="ValidationExceptions\UnresolvedVariableException.cs" />
     <Compile Include="EnvironmentTreeBuilder.cs" />
   </ItemGroup>

@@ -6,9 +6,12 @@ using System.Threading.Tasks;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using QuestScript.Interpreter.InterpreterElements;
+using QuestScript.Interpreter.ScriptElements;
 using QuestScript.Interpreter.ValidationExceptions;
 using QuestScript.Parser;
+using static System.Int32;
 using Environment = QuestScript.Interpreter.InterpreterElements.Environment;
+// ReSharper disable ArgumentsStyleLiteral
 
 namespace QuestScript.Interpreter
 {
@@ -46,6 +49,68 @@ namespace QuestScript.Interpreter
             _current = _current.Parent; //pop
             return success;
         }
+     
+        public override bool VisitWhileStatement(QuestScriptParser.WhileStatementContext context)
+        {
+            //if while has a code block, no need for opening a scope
+            var shouldOpenNewScope = !context.code.HasDescendantOfType<QuestScriptParser.CodeBlockStatementContext>();
+            if (shouldOpenNewScope)
+            {
+                _current = _current.CreateChild(context); //push
+            }
+            var success = base.VisitWhileStatement(context);
+
+            if (shouldOpenNewScope)
+            {
+                _current = _current.Parent; //pop
+            }
+
+            return success;
+        }
+
+        public override bool VisitForStatement(QuestScriptParser.ForStatementContext context)
+        {
+            _current = _current.CreateChild(context); //push
+
+            if (!IsVariableDefined(_current, context.iterationVariable.Text))
+            {
+                //note: we know that iteration variable of "for" is integer because syntax specifies so
+                DeclareLocalVariable(context.iterationVariable.Text, context, ObjectType.Integer,
+                    () => Parse(context.iterationStart.Text));
+            }
+            else
+            {
+                Errors.Add(
+                    new ConflictingVariableName(context,context.iterationVariable.Text,
+                            "Iteration variable names in 'for' statements must not conflict with already defined variables."));
+            }
+
+            var success = base.VisitForStatement(context);
+            _current = _current.Parent; //pop
+            return success;
+        }
+
+        public override bool VisitForEachStatement(QuestScriptParser.ForEachStatementContext context)
+        {
+            _current = _current.CreateChild(context); //push
+
+            if (!IsVariableDefined(_current, context.iterationVariable.Text))
+            {
+                //TODO: investigate possibility of using some sort of enumerator for this case
+                DeclareLocalVariable(context.iterationVariable.Text,context,context.enumerationVariable, isEnumerationVariable:true);
+            }
+            else
+            {
+                Errors.Add(
+                    new ConflictingVariableName(context,context.iterationVariable.Text,
+                        "Iteration variable names in 'foreach' statements must not conflict with already defined variables."));
+            }
+
+            var success = base.VisitForEachStatement(context);
+
+            _current = _current.Parent; //pop
+            return success;
+        }
 
         public override bool VisitStatement(QuestScriptParser.StatementContext context)
         {
@@ -54,8 +119,7 @@ namespace QuestScript.Interpreter
             _current.Statements.Add(context);
             EnvironmentsByContext.Add(context,_current);
             return base.VisitStatement(context);
-        }
-       
+        }      
 
         //TODO : add resolution to object members as well                
         public override bool VisitIdentifierOperand(QuestScriptParser.IdentifierOperandContext context)
@@ -75,17 +139,34 @@ namespace QuestScript.Interpreter
             if (!identifier.Contains(".") && //member assignment is not a local variable...
                 !IsVariableDefined(_current,identifier))
             {
-                var type = _typeInferencer.Visit(context.RVal);
-                _current.LocalVariables.Add(new Variable
-                {
-                    Name = identifier,
-                    Type = type,
-                    Value = () => context.RVal
-                });
-                _current = _current.CreateNextSibling(context);
+                DeclareLocalVariable(identifier, context, valueContext: context.RVal);
             }
 
             return success;
+        }
+
+        private void DeclareLocalVariable(string name,ParserRuleContext statementContext, ObjectType type, Func<object> valueResolver)
+        {
+            _current.LocalVariables.Add(new Variable
+            {
+                Name = name,
+                Type = type,
+                ValueResolver = valueResolver
+            });
+            _current = _current.CreateNextSibling(statementContext);
+        }
+
+        private void DeclareLocalVariable(string name, ParserRuleContext statementContext, ParserRuleContext valueContext, bool isEnumerationVariable = false)
+        {
+            var type = _typeInferencer.Visit(valueContext);
+            _current.LocalVariables.Add(new Variable
+            {
+                Name = name,
+                Type = type,
+                IsEnumerationVariable = isEnumerationVariable, //special case of variable
+                ValueResolver = () => throw new NotImplementedException("Instead of this exception, there should be an output of value resolver visitor, which will be used on the parameter")
+            });
+            _current = _current.CreateNextSibling(statementContext);
         }
 
         private void RecordErrorIfUndefined(ParserRuleContext context, string variable)
