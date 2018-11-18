@@ -9,7 +9,7 @@ namespace QuestScript.Interpreter
     public static class ParserRuleContextUtils
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool HasDescendantOfType<TChild>(this ParserRuleContext ctx) where TChild : ParserRuleContext => ctx.GetChildOfType<TChild>() != null;
+        public static bool HasDescendantOfType<TChild>(this ParserRuleContext ctx) where TChild : ParserRuleContext => ctx is TChild || ctx.GetChildOfType<TChild>() != null;
 
         public static TChild GetChildOfType<TChild>(this ParserRuleContext ctx) where TChild : ParserRuleContext
         {
@@ -49,7 +49,10 @@ namespace QuestScript.Interpreter
 
             return null;
         }
-        
+
+        public static bool HasParentOfType<TParent>(this ParserRuleContext ctx) where TParent : ParserRuleContext => 
+            ctx.FindParentOfType<TParent>() != null;
+
         public static TParent FindParentOfType<TParent>(this ParserRuleContext ctx) where TParent : ParserRuleContext
         {
             var currentCtx = ctx;
