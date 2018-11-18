@@ -88,7 +88,7 @@ prefixUnaryStatement: op = unaryOp expr = expression;
 //expressions evaluate to some value...
 expression:
         rValue                                                  #OperandExpression
-    |   LeftParen expression RightParen                         #ParenthesizedExpression
+    |   LeftParen expr = expression RightParen                  #ParenthesizedExpression
     |   instance = expression '[' parameter = expression ']'    #IndexerExpression
     |   left = expression op = relationalOp right = expression  #RelationalExpression
     |   left = expression op = logicalOp right = expression     #LogicalExpression

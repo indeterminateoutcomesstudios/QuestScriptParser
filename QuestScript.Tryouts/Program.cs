@@ -12,8 +12,10 @@ namespace QuestScript.Tryouts
         {
 
             var lexer = new QuestScriptLexer(new AntlrInputStream(@" 
-                x = 43.33
-                { x = 34 }
+                x = ""www""    
+                if((3 > 0 and 4 < x) or (y > 3))
+                {
+                }
             "));
 
             //var collectorTokenSource = new CollectorTokenSource(lexer);

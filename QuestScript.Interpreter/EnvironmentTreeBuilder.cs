@@ -154,11 +154,34 @@ namespace QuestScript.Interpreter
             { //do type checking, since this is not a declaration but an assignment
                 var rValueType = _typeInferenceVisitor.Visit(context.RVal);
                 var lValueType = _typeInferenceVisitor.Visit(context.LVal);
-                if(lValueType != rValueType && !TypeConverter.CanConvert(rValueType,lValueType))
-                    Errors.Add(new UnexpectedTypeException(context,lValueType,rValueType,context.RVal,"Also, couldn't find suitable implicit casting. Perhaps you should consider manually casting to a new type?"));
+                if(lValueType != rValueType && !TypeUtil.CanConvert(rValueType,lValueType))
+                    Errors.Add(new UnexpectedTypeException(context,lValueType,rValueType,context.RVal,"Moreover I couldn't find suitable implicit casting."));
             }
 
             return success;
+        }
+
+        //if condition type check - make sure it resolves to boolean type
+        public override bool VisitIfStatement(QuestScriptParser.IfStatementContext context)
+        {            
+            var ifConditionExpressionType = _typeInferenceVisitor.Visit(context.condition);
+            if (ifConditionExpressionType != ObjectType.Unknown && 
+                ifConditionExpressionType != ObjectType.Boolean)
+            {
+                Errors.Add(new InvalidConditionException(context,"if",context.condition));
+            }
+
+            foreach (var elseifCondition in context._elseifConditions)
+            {
+                var elseIfConditionExpressionType = _typeInferenceVisitor.Visit(elseifCondition);
+                if (elseIfConditionExpressionType != ObjectType.Unknown && 
+                    elseIfConditionExpressionType != ObjectType.Boolean)
+                {
+                    Errors.Add(new InvalidConditionException(context,"elseif",elseifCondition));
+                }
+            }
+
+            return base.VisitIfStatement(context);
         }
 
         private void DeclareLocalVariable(string name,ParserRuleContext statementContext, ParserRuleContext variableContext, ObjectType type, Func<object> valueResolver, bool isEnumerationVariable = false, bool isIterationVariable = false)

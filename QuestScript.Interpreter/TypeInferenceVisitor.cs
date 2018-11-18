@@ -1,4 +1,6 @@
-﻿using QuestScript.Interpreter.ScriptElements;
+﻿using QuestScript.Interpreter.Helpers;
+using QuestScript.Interpreter.ScriptElements;
+using QuestScript.Interpreter.ValidationExceptions;
 using QuestScript.Parser;
 
 namespace QuestScript.Interpreter
@@ -27,26 +29,55 @@ namespace QuestScript.Interpreter
             return base.VisitIdentifierOperand(context);
         }
 
-        public override ObjectType VisitRelationalExpression(QuestScriptParser.RelationalExpressionContext context)
+        public override ObjectType VisitParenthesizedExpression(QuestScriptParser.ParenthesizedExpressionContext context) => context.expr.Accept(this);
+
+        
+
+        public override ObjectType VisitArithmeticExpression(QuestScriptParser.ArithmeticExpressionContext context)
         {
-            if (context.left.Accept(this) != ObjectType.Boolean)
-                return ObjectType.Unknown;
-            
-            if (context.right.Accept(this) != ObjectType.Boolean)
+            var leftType = context.left.Accept(this);
+            var rightType = context.right.Accept(this);
+
+            //if at least one is unknown, then we already have an error and can stop evaluating types
+            if (leftType == ObjectType.Unknown || rightType == ObjectType.Unknown)
                 return ObjectType.Unknown;
 
-            return ObjectType.Boolean;
+            if (leftType == rightType)
+                return leftType;
+
+            if (TypeUtil.CanConvert(rightType, leftType))
+                return leftType;
+
+            _environmentBuilder.Errors.Add(new InvalidOperandsException(context,context.op.GetText(), leftType, rightType));
+
+            return ObjectType.Unknown;
+        }
+
+        public override ObjectType VisitRelationalExpression(QuestScriptParser.RelationalExpressionContext context)
+        {
+            var leftType = context.left.Accept(this);
+            var rightType = context.right.Accept(this);
+
+            if (TypeUtil.IsComparable(leftType) && TypeUtil.IsComparable(rightType)) 
+                return ObjectType.Boolean; //comparison results are boolean of course...
+
+            _environmentBuilder.Errors.Add(new InvalidOperandsException(context,context.op.GetText(),leftType,rightType));
+            return ObjectType.Unknown;
         }
 
         public override ObjectType VisitLogicalExpression(QuestScriptParser.LogicalExpressionContext context)
         {
-            if (context.left.Accept(this) != ObjectType.Boolean)
-                return ObjectType.Unknown;
-            
-            if (context.right.Accept(this) != ObjectType.Boolean)
-                return ObjectType.Unknown;
+            var leftType = context.left.Accept(this);
+            var rightType = context.right.Accept(this);
 
-            return ObjectType.Boolean;
+            if (leftType == ObjectType.Boolean &&
+                rightType == ObjectType.Boolean)
+            {
+                return ObjectType.Boolean;
+            }
+
+            _environmentBuilder.Errors.Add(new InvalidOperandsException(context,context.op.GetText(),leftType,rightType));
+            return ObjectType.Unknown;
         }
 
         public override ObjectType VisitNotExpression(QuestScriptParser.NotExpressionContext context)

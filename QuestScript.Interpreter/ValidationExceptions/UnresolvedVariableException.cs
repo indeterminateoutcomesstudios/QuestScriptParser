@@ -1,5 +1,4 @@
-﻿using System;
-using Antlr4.Runtime;
+﻿using Antlr4.Runtime;
 
 namespace QuestScript.Interpreter.ValidationExceptions
 {
@@ -8,7 +7,7 @@ namespace QuestScript.Interpreter.ValidationExceptions
         public string Name { get; }
 
         public UnresolvedVariableException(string name, ParserRuleContext variableContext, string description = null) : 
-            base(variableContext,$"I found {description ?? "variable"} I couldn't recognize. Can you make sure '{name}' is defined before it is used?")
+            base(variableContext,$"Undefined {description ?? "variable"} found. Make sure '{name}' is defined before it is used. Or perhaps it is a typo?")
         {                       
             Name = name;
         }

@@ -193,7 +193,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Helpers\CollectorTokenSource.cs" />
-    <Compile Include="Helpers\TypeConverter.cs" />
+    <Compile Include="Helpers\TypeUtil.cs" />
     <Compile Include="InterpreterElements\Variable.cs" />
     <Compile Include="InterpreterElements\Environment.cs" />
     <Compile Include="ParserRuleContextUtils.cs" />
@@ -210,6 +210,8 @@
     <Compile Include="UtilExtensions.cs" />
     <Compile Include="ValidationExceptions\BaseValidationException.cs" />
     <Compile Include="ValidationExceptions\ConflictingVariableName.cs" />
+    <Compile Include="ValidationExceptions\InvalidConditionException.cs" />
+    <Compile Include="ValidationExceptions\InvalidOperandsException.cs" />
     <Compile Include="ValidationExceptions\UnexpectedTypeException.cs" />
     <Compile Include="ValidationExceptions\UnresolvedVariableException.cs" />
     <Compile Include="EnvironmentTreeBuilder.cs" />

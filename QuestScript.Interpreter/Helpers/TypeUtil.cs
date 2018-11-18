@@ -4,8 +4,12 @@ using QuestScript.Interpreter.ScriptElements;
 
 namespace QuestScript.Interpreter.Helpers
 {
-    public static class TypeConverter
+    public static class TypeUtil
     {
+        private static IReadOnlyList<ObjectType> _comparableTypes = new List<ObjectType>{ ObjectType.Integer, ObjectType.Double };
+
+        public static bool IsComparable(ObjectType type) => _comparableTypes.Contains(type);
+
         private static Dictionary<ObjectType, ObjectType[]> _allowedImplicitCasting = new Dictionary<ObjectType, ObjectType[]>
         {
             { ObjectType.Integer, new []{ ObjectType.Double, ObjectType.String, ObjectType.Object } },
