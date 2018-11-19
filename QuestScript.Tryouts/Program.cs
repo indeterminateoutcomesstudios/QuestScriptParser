@@ -10,10 +10,9 @@ namespace QuestScript.Tryouts
     {
         static void Main(string[] args)
         {
-
             var lexer = new QuestScriptLexer(new AntlrInputStream(@" 
                 x = 4    
-                y = x                
+                y = 10 - (x + 2) * 2
             "));
             var tokens = new CommonTokenStream(lexer);
             var parser = new QuestScriptParser(tokens);

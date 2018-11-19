@@ -197,6 +197,7 @@
   <ItemGroup>
     <Compile Include="EnvironmentTree.cs" />
     <Compile Include="EnvironmentExtensions.cs" />
+    <Compile Include="Exceptions\FailedToInferTypeException.cs" />
     <Compile Include="Exceptions\FailedValueInterpretation.cs" />
     <Compile Include="Helpers\CollectorTokenSource.cs" />
     <Compile Include="Helpers\TypeUtil.cs" />
@@ -221,7 +222,7 @@
     <Compile Include="Exceptions\UnexpectedTypeException.cs" />
     <Compile Include="Exceptions\UnresolvedVariableException.cs" />
     <Compile Include="EnvironmentTreeBuilder.cs" />
-    <Compile Include="ValueResolverVisitor.cs" />
+    <Compile Include="ExpressionValueResolverVisitor.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\QuestScript.Parser\QuestScript.Parser.csproj">

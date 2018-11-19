@@ -16,7 +16,7 @@ namespace QuestScript.Interpreter
     {
         private Environment _current;
         private readonly TypeInferenceVisitor _typeInferenceVisitor;
-        private readonly ValueResolverVisitor _valueResolverVisitor;
+        private readonly ExpressionValueResolverVisitor _expressionValueResolverVisitor;
         private Environment _root;    
 
         public List<BaseInterpreterException> Errors { get; } = new List<BaseInterpreterException>();
@@ -27,7 +27,7 @@ namespace QuestScript.Interpreter
         public EnvironmentTreeBuilder()
         {
             _typeInferenceVisitor = new TypeInferenceVisitor(this);
-            _valueResolverVisitor = new ValueResolverVisitor(this);
+            _expressionValueResolverVisitor = new ExpressionValueResolverVisitor(this);
         }
 
         public EnvironmentTree Output => 
@@ -163,7 +163,7 @@ namespace QuestScript.Interpreter
                 if(lValueType != rValueType && !TypeUtil.CanConvert(rValueType,lValueType))
                     Errors.Add(new UnexpectedTypeException(context,lValueType,rValueType,context.RVal,"Moreover I couldn't find suitable implicit casting."));
 
-                variable.Value = new Lazy<object>(() => _valueResolverVisitor.Visit(context.RVal));
+                variable.Value = new Lazy<object>(() => _expressionValueResolverVisitor.Visit(context.RVal));
             }
 
             return success;
@@ -216,7 +216,7 @@ namespace QuestScript.Interpreter
                 IsEnumerationVariable = isEnumerationVariable, 
                 IsIterationVariable = isIterationVariable,
                 Context = variableContext,
-                Value = new Lazy<object>(() => _valueResolverVisitor.Visit(valueContext))
+                Value = new Lazy<object>(() => _expressionValueResolverVisitor.Visit(valueContext))
             });
             _current = _current.CreateNextSibling(statementContext);
         }

@@ -48,6 +48,9 @@ namespace QuestScript.Interpreter
             if (TypeUtil.CanConvert(rightType, leftType))
                 return leftType;
 
+            if (TypeUtil.CanConvert(leftType, rightType))
+                return rightType;
+
             _environmentBuilder.Errors.Add(new InvalidOperandsException(context,context.op.GetText(), leftType, rightType));
 
             return ObjectType.Unknown;

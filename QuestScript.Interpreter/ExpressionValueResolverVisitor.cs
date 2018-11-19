@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using FastMember;
 using QuestScript.Interpreter.Exceptions;
 using QuestScript.Interpreter.Helpers;
 using QuestScript.Interpreter.ScriptElements;
@@ -10,13 +12,14 @@ using QuestScript.Parser;
 namespace QuestScript.Interpreter
 {
     //resolver for values of object attributes and local variables
-    public class ValueResolverVisitor : QuestScriptBaseVisitor<object>
+    public class ExpressionValueResolverVisitor : QuestScriptBaseVisitor<object>
     {
         private readonly EnvironmentTreeBuilder _environmentBuilder;
-
-        public ValueResolverVisitor(EnvironmentTreeBuilder environmentBuilder)
+        private readonly TypeAccessor _lazyTypeAccessor;
+        public ExpressionValueResolverVisitor(EnvironmentTreeBuilder environmentBuilder)
         {
             _environmentBuilder = environmentBuilder;
+            _lazyTypeAccessor = TypeAccessor.Create(typeof(Lazy<object>));
         }
 
         public List<BaseInterpreterException> Errors { get; } = new List<BaseInterpreterException>();
@@ -29,6 +32,66 @@ namespace QuestScript.Interpreter
                 return variable.Value;
             }
 
+            return null;
+        }
+
+        public override object VisitParenthesizedExpression(QuestScriptParser.ParenthesizedExpressionContext context) => context.expr.Accept(this);
+
+        public override object VisitArithmeticExpression(QuestScriptParser.ArithmeticExpressionContext context)
+        {
+            var leftValue = GetValueOrLazyValue(context.left.Accept(this));
+            var rightValue = GetValueOrLazyValue(context.right.Accept(this));
+
+            if (context.op.GetText() == "+")
+            {
+                if (leftValue is string leftStr)
+                    return leftStr + rightValue;
+                if (rightValue is string rightStr)
+                    return leftValue + rightStr;
+            }
+            
+            if ((leftValue is int || leftValue is double) &&
+                (rightValue is int || rightValue is double))
+            {
+                
+                bool TryConvertToNumber(object value, out double result)
+                {
+                    result = 0;
+                    try
+                    {
+                        result = Convert.ToDouble(value);
+                    }
+                    catch (InvalidCastException e)
+                    {
+                        Errors.Add(new FailedToInferTypeException(context, context.left, e));
+                        return false;
+                    }
+
+                    return true;
+                }
+
+                if (!TryConvertToNumber(leftValue, out var leftValueAsNumber)) 
+                    return null;
+
+                if (!TryConvertToNumber(rightValue, out var rightValueAsNumber)) 
+                    return null;
+
+                switch (context.op.GetText())
+                {
+                    case "+":
+                        return leftValueAsNumber + rightValueAsNumber;
+                    case "-":
+                        return leftValueAsNumber - rightValueAsNumber;
+                    case "/":
+                        return leftValueAsNumber / rightValueAsNumber;
+                    case "%":
+                        return leftValueAsNumber % rightValueAsNumber;
+                    case "*":
+                        return leftValueAsNumber * rightValueAsNumber;
+                }
+            }
+
+            //if not numeric and not string concatenation, nothing to do...
             return null;
         }
 
@@ -92,5 +155,9 @@ namespace QuestScript.Interpreter
 
             return list;
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private object GetValueOrLazyValue(object valueOrLazy) => 
+            valueOrLazy is Lazy<object> ? _lazyTypeAccessor[valueOrLazy, "Value"] : valueOrLazy;
     }
 }
