@@ -223,7 +223,7 @@
     <Compile Include="Exceptions\UnexpectedTypeException.cs" />
     <Compile Include="Exceptions\UnresolvedVariableException.cs" />
     <Compile Include="EnvironmentTreeBuilder.cs" />
-    <Compile Include="ExpressionValueResolverVisitor.cs" />
+    <Compile Include="ValueResolverVisitor.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\QuestScript.Parser\QuestScript.Parser.csproj">

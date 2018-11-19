@@ -1,9 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using QuestScript.Interpreter.InterpreterElements;
-using Environment = System.Environment;
 
 namespace QuestScript.Interpreter
 {
@@ -17,16 +14,7 @@ namespace QuestScript.Interpreter
                 var variable = environment.LocalVariables.FirstOrDefault(v => v.Name.Equals(name));
                 if (variable != null)
                     return variable;
-
-                //then, iterate back over siblings and see if it is defined BEFORE the current one
-                while(environment.PrevSibling != null) 
-                {
-                    environment = environment.PrevSibling;
-                    variable = environment.LocalVariables.FirstOrDefault(v => v.Name.Equals(name));
-                    if (variable != null)
-                        return variable;
-                }
-
+           
                 environment = environment.Parent;
             }
 
@@ -38,24 +26,11 @@ namespace QuestScript.Interpreter
             return GetVariable(environment, name) != null;
         }
 
-        public static IEnumerable<InterpreterElements.Environment> Siblings(this InterpreterElements.Environment environment)
-        {
-            var start = environment;
-            while (start.NextSibling != null)
-            {
-                yield return start;
-                start = start.NextSibling;                
-            }
-        }
+ 
 
         public static IEnumerable<InterpreterElements.Environment> IterateBFS(this InterpreterElements.Environment environment)
         {
-            foreach (var env in environment.Siblings())
-                yield return env;
-
-            if(environment.Children.Count == 0)
-                yield break;
-
+            yield return environment;
             foreach (var env in environment.Children.SelectMany(c => c.IterateBFS()))
                 yield return env;
         }

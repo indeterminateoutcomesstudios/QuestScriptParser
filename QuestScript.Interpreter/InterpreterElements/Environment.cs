@@ -15,10 +15,6 @@ namespace QuestScript.Interpreter.InterpreterElements
         public ParserRuleContext Context;
         public List<Environment> Children { get; } = new List<Environment>();
 
-        //declarations "split" environments - in this way we can track which variables were declared AFTER their usage
-        public Environment NextSibling;
-        public Environment PrevSibling;
-
         public Environment CreateChild(ParserRuleContext ctx)
         {
             var newScope = new Environment
@@ -29,24 +25,6 @@ namespace QuestScript.Interpreter.InterpreterElements
             Children.Add(newScope);
             
             return newScope;
-        }
-
-        //progressive siblings need to have everything that is in previous ones
-        public Environment CreateNextSibling(ParserRuleContext ctx)
-        {
-            var newSibling = new Environment
-            {
-                Parent = Parent,
-                Context = ctx
-            };
-
-            newSibling.Children.AddRange(Children);
-            newSibling.PrevSibling = this;
-            NextSibling = newSibling;
-            newSibling.LocalVariables.AddRange(LocalVariables);
-            newSibling.LocalObjects.AddRange(LocalObjects);
-
-            return newSibling;
         }
     }
 }

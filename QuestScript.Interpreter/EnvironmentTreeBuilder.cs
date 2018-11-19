@@ -16,7 +16,7 @@ namespace QuestScript.Interpreter
     {
         private Environment _current;
         private readonly TypeInferenceVisitor _typeInferenceVisitor;
-        private readonly ExpressionValueResolverVisitor _expressionValueResolverVisitor;
+        private readonly ValueResolverVisitor _valueResolverVisitor;
         private Environment _root;    
 
         public List<BaseInterpreterException> Errors { get; } = new List<BaseInterpreterException>();
@@ -27,7 +27,7 @@ namespace QuestScript.Interpreter
         public EnvironmentTreeBuilder()
         {
             _typeInferenceVisitor = new TypeInferenceVisitor(this);
-            _expressionValueResolverVisitor = new ExpressionValueResolverVisitor(this);
+            _valueResolverVisitor = new ValueResolverVisitor(this);
         }
 
         public EnvironmentTree Output => 
@@ -82,7 +82,7 @@ namespace QuestScript.Interpreter
             if (!_current.IsVariableDefined(context.iterationVariable.Text))
             {
                 //note: we know that iteration variable of "for" is integer because syntax specifies so
-                DeclareLocalVariable(context.iterationVariable.Text, context, context, ObjectType.Integer,
+                DeclareLocalVariable(context.iterationVariable.Text, context, ObjectType.Integer,
                     new Lazy<object>(() => int.Parse(context.iterationStart.Text)),isIterationVariable:true);
             }
             else
@@ -109,7 +109,7 @@ namespace QuestScript.Interpreter
             if (!_current.IsVariableDefined(context.iterationVariable.Text))
             {
                 //TODO: investigate possibility of using some sort of enumerator for this case
-                DeclareLocalVariable(context.iterationVariable.Text,context, context, context.enumerationVariable, isEnumerationVariable:true);
+                DeclareLocalVariable(context.iterationVariable.Text, context, context.enumerationVariable, isEnumerationVariable:true);
             }
             else
             {
@@ -154,7 +154,7 @@ namespace QuestScript.Interpreter
             
             if (!isMemberAssignment && !variableDefined)
             {
-                DeclareLocalVariable(identifier, context, context.LVal, valueContext: context.RVal);
+                DeclareLocalVariable(identifier, context.LVal, valueContext: context.RVal);
             }
             else if(variableDefined && !isMemberAssignment) //do a type check, since we are not declaring but assigning
             { //do type checking, since this is not a declaration but an assignment
@@ -163,7 +163,7 @@ namespace QuestScript.Interpreter
                 if(lValueType != rValueType && !TypeUtil.CanConvert(rValueType,lValueType))
                     Errors.Add(new UnexpectedTypeException(context,lValueType,rValueType,context.RVal,"Moreover I couldn't find suitable implicit casting."));
 
-                variable.Value = new Lazy<object>(() => _expressionValueResolverVisitor.Visit(context.RVal));
+                variable.Value = _valueResolverVisitor.Visit(context.RVal);
             }
 
             return success;
@@ -192,7 +192,7 @@ namespace QuestScript.Interpreter
             return base.VisitIfStatement(context);
         }
 
-        private void DeclareLocalVariable(string name,ParserRuleContext statementContext, ParserRuleContext variableContext, ObjectType type, Lazy<object> valueResolver, bool isEnumerationVariable = false, bool isIterationVariable = false)
+        private void DeclareLocalVariable(string name, ParserRuleContext variableContext, ObjectType type, Lazy<object> valueResolver, bool isEnumerationVariable = false, bool isIterationVariable = false)
         {
             _current.LocalVariables.Add(new Variable
             {
@@ -203,10 +203,9 @@ namespace QuestScript.Interpreter
                 IsIterationVariable = isIterationVariable, //if true, prevent changes to the variable
                 Context = variableContext
             });
-            _current = _current.CreateNextSibling(statementContext);
         }
 
-        private void DeclareLocalVariable(string name, ParserRuleContext statementContext, ParserRuleContext variableContext, ParserRuleContext valueContext, bool isEnumerationVariable = false, bool isIterationVariable = false)
+        private void DeclareLocalVariable(string name, ParserRuleContext variableContext, ParserRuleContext valueContext, bool isEnumerationVariable = false, bool isIterationVariable = false)
         {
             var type = _typeInferenceVisitor.Visit(valueContext);
             _current.LocalVariables.Add(new Variable
@@ -216,9 +215,8 @@ namespace QuestScript.Interpreter
                 IsEnumerationVariable = isEnumerationVariable, 
                 IsIterationVariable = isIterationVariable,
                 Context = variableContext,
-                Value = new Lazy<object>(() => _expressionValueResolverVisitor.Visit(valueContext))
+                Value = _valueResolverVisitor.Visit(valueContext)
             });
-            _current = _current.CreateNextSibling(statementContext);
         }
 
         //to be used by TypeInferenceVisitor

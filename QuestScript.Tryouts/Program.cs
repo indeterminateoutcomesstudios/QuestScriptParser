@@ -12,7 +12,7 @@ namespace QuestScript.Tryouts
         {
             var lexer = new QuestScriptLexer(new AntlrInputStream(@" 
                 x = 5    
-                y = 0.5 / x
+                y = x + 5
             "));
             var tokens = new CommonTokenStream(lexer);
             var parser = new QuestScriptParser(tokens);
