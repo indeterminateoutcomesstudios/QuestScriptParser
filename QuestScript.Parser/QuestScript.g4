@@ -87,18 +87,19 @@ prefixUnaryStatement: op = unaryOp expr = expression;
 
 //expressions evaluate to some value...
 expression:
-        rValue                                                  #OperandExpression
-    |   LeftParen expr = expression RightParen                  #ParenthesizedExpression
-    |   instance = expression '[' parameter = expression ']'    #IndexerExpression
-    |   left = expression op = relationalOp right = expression  #RelationalExpression
-    |   left = expression op = logicalOp right = expression     #LogicalExpression
-    |   left = expression op = arithmeticOp right = expression  #ArithmeticExpression
-    |   Not expr = expression                                   #NotExpression
-    |   op = unaryOp expr = expression                          #PrefixUnaryExpression
-    |   expr = expression op = (PlusPlus|MinusMinus)            #PostfixUnaryExpression
-	|	arrayLiteral											#ArrayLiteralExpression
-	|	'this'													#ThisExpression
-	|	expression '.' functionStatement						#MemberMethodExpression
+        rValue														#OperandExpression
+    |   LeftParen expr = expression RightParen						#ParenthesizedExpression
+    |   instance = expression '[' parameter = expression ']'		#IndexerExpression
+    |   left = expression op = relationalOp right = expression		#RelationalExpression
+    |   left = expression op = logicalOp right = expression			#LogicalExpression
+    |   left = expression op = multiplicativeOp right = expression  #MultiplicativeExpression
+    |   left = expression op = additiveOp right = expression		#AdditiveExpression
+    |   Not expr = expression										#NotExpression
+    |   op = unaryOp expr = expression								#PrefixUnaryExpression
+    |   expr = expression op = (PlusPlus|MinusMinus)				#PostfixUnaryExpression
+	|	arrayLiteral												#ArrayLiteralExpression
+	|	'this'														#ThisExpression
+	|	expression '.' functionStatement							#MemberMethodExpression
     ;
 
 rValue:
@@ -134,13 +135,18 @@ logicalOp:
     |   'or'    #OrOp
     ;
 
-arithmeticOp:
-        '+'     #PlusOp
-    |   '-'     #MinusOp
-    |   '/'     #DivOp
+multiplicativeOp:
+        '/'     #DivOp
     |   '%'     #ModOp
     |   '*'     #ModOp
-    ;
+    ;				
+
+additiveOp:
+        '+'     #PlusOp
+    |   '-'     #MinusOp
+	;
+
+arithmeticOp: multiplicativeOp | additiveOp;
 
 literal: 
 	  IntegerLiteral #IntegerLiteral

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using Antlr4.Runtime;
 using FastMember;
 using QuestScript.Interpreter.Exceptions;
 using QuestScript.Interpreter.Helpers;
@@ -42,12 +43,18 @@ namespace QuestScript.Interpreter
 
         public override object VisitParenthesizedExpression(QuestScriptParser.ParenthesizedExpressionContext context) => context.expr.Accept(this);
 
-        public override object VisitArithmeticExpression(QuestScriptParser.ArithmeticExpressionContext context)
-        {
-            var leftValue = GetValueOrLazyValue(context.left.Accept(this));
-            var rightValue = GetValueOrLazyValue(context.right.Accept(this));
+        public override object VisitAdditiveExpression(QuestScriptParser.AdditiveExpressionContext context) =>
+            VisitArithmeticExpression(context, context.op, context.left, context.right);
 
-            if (context.op.GetText() == "+")
+        public override object VisitMultiplicativeExpression(QuestScriptParser.MultiplicativeExpressionContext context) =>
+            VisitArithmeticExpression(context, context.op, context.left, context.right);
+
+        private object VisitArithmeticExpression(ParserRuleContext context, ParserRuleContext op,ParserRuleContext left, ParserRuleContext right)
+        {
+            var leftValue = GetValueOrLazyValue(left.Accept(this));
+            var rightValue = GetValueOrLazyValue(right.Accept(this));
+
+            if (op.GetText() == "+")
             {
                 if (leftValue is string leftStr)
                     return leftStr + rightValue;
@@ -68,7 +75,7 @@ namespace QuestScript.Interpreter
                     }
                     catch (InvalidCastException e)
                     {
-                        Errors.Add(new FailedToInferTypeException(context, context.left, e));
+                        Errors.Add(new FailedToInferTypeException(context, left, e));
                         return false;
                     }
 
@@ -81,7 +88,7 @@ namespace QuestScript.Interpreter
                 if (!TryConvertToNumber(rightValue, out var rightValueAsNumber)) 
                     return null;
 
-                switch (context.op.GetText())
+                switch (op.GetText())
                 {
                     case "+":
                         return leftValueAsNumber + rightValueAsNumber;

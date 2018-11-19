@@ -1,4 +1,5 @@
-﻿using QuestScript.Interpreter.Exceptions;
+﻿using Antlr4.Runtime;
+using QuestScript.Interpreter.Exceptions;
 using QuestScript.Interpreter.Helpers;
 using QuestScript.Interpreter.ScriptElements;
 using QuestScript.Parser;
@@ -31,12 +32,21 @@ namespace QuestScript.Interpreter
 
         public override ObjectType VisitParenthesizedExpression(QuestScriptParser.ParenthesizedExpressionContext context) => context.expr.Accept(this);
 
-        
-
-        public override ObjectType VisitArithmeticExpression(QuestScriptParser.ArithmeticExpressionContext context)
+        public override ObjectType VisitAdditiveExpression(QuestScriptParser.AdditiveExpressionContext context)
         {
-            var leftType = context.left.Accept(this);
-            var rightType = context.right.Accept(this);
+            return VisitArithmeticExpression(context, context.op, context.left, context.right);
+        }
+
+        public override ObjectType VisitMultiplicativeExpression(QuestScriptParser.MultiplicativeExpressionContext context)
+        {
+            return VisitArithmeticExpression(context, context.op, context.left, context.right);
+        }
+
+        //public override ObjectType VisitArithmeticExpression(QuestScriptParser.ArithmeticExpressionContext context)
+        private ObjectType VisitArithmeticExpression(ParserRuleContext context, ParserRuleContext op,ParserRuleContext left, ParserRuleContext right)        
+        {
+            var leftType = left.Accept(this);
+            var rightType = right.Accept(this);
 
             //if at least one is unknown, then we already have an error and can stop evaluating types
             if (leftType == ObjectType.Unknown || rightType == ObjectType.Unknown)
@@ -51,7 +61,7 @@ namespace QuestScript.Interpreter
             if (TypeUtil.CanConvert(leftType, rightType))
                 return rightType;
 
-            _environmentBuilder.Errors.Add(new InvalidOperandsException(context,context.op.GetText(), leftType, rightType));
+            _environmentBuilder.Errors.Add(new InvalidOperandsException(context,op.GetText(), leftType, rightType));
 
             return ObjectType.Unknown;
         }

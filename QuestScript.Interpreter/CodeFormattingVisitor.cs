@@ -176,11 +176,18 @@ namespace QuestScript.Interpreter
             return true;
         }
 
-        public override bool VisitArithmeticExpression(QuestScriptParser.ArithmeticExpressionContext context)
+        public override bool VisitAdditiveExpression(QuestScriptParser.AdditiveExpressionContext context)
         {
             PrintBoolean(context.left, context.op.GetText(), context.right);
             return true;
         }
+
+        public override bool VisitMultiplicativeExpression(QuestScriptParser.MultiplicativeExpressionContext context)
+        {
+            PrintBoolean(context.left, context.op.GetText(), context.right);
+            return true;
+        }
+
 
         public override bool VisitCodeBlockStatement(QuestScriptParser.CodeBlockStatementContext context)
         {
