@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using QuestScript.Interpreter.ScriptElements;
 
 namespace QuestScript.Tryouts
@@ -9,6 +10,9 @@ namespace QuestScript.Tryouts
         private readonly List<ObjectInstanceInfo> _attributes;
 
         public string Name { get; set; }
+        
+        public Func<object> ValueResolver => () => new ExpandoObject();
+
         public ObjectType Type { get; set; }
         public string TypeName { get; set; }
 

@@ -38,6 +38,9 @@
     <Reference Include="Antlr4.Runtime, Version=4.6.0.0, Culture=neutral, PublicKeyToken=09abb75b9ed49849, processorArchitecture=MSIL">
       <HintPath>..\packages\Antlr4.Runtime.4.6.5\lib\net45\Antlr4.Runtime.dll</HintPath>
     </Reference>
+    <Reference Include="FastMember, Version=1.4.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\FastMember.1.4.1\lib\net461\FastMember.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CodeAnalysis, Version=2.9.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.CodeAnalysis.Common.2.9.0\lib\netstandard1.3\Microsoft.CodeAnalysis.dll</HintPath>
     </Reference>
@@ -192,6 +195,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EnvironmentTree.cs" />
+    <Compile Include="EnvironmentExtensions.cs" />
+    <Compile Include="Exceptions\FailedValueInterpretation.cs" />
     <Compile Include="Helpers\CollectorTokenSource.cs" />
     <Compile Include="Helpers\TypeUtil.cs" />
     <Compile Include="InterpreterElements\Variable.cs" />
@@ -208,13 +214,14 @@
     <Compile Include="ScriptElements\IObjectInstance.cs" />
     <Compile Include="TypeInferenceVisitor.cs" />
     <Compile Include="UtilExtensions.cs" />
-    <Compile Include="ValidationExceptions\BaseValidationException.cs" />
-    <Compile Include="ValidationExceptions\ConflictingVariableName.cs" />
-    <Compile Include="ValidationExceptions\InvalidConditionException.cs" />
-    <Compile Include="ValidationExceptions\InvalidOperandsException.cs" />
-    <Compile Include="ValidationExceptions\UnexpectedTypeException.cs" />
-    <Compile Include="ValidationExceptions\UnresolvedVariableException.cs" />
+    <Compile Include="Exceptions\BaseInterpreterException.cs" />
+    <Compile Include="Exceptions\ConflictingVariableName.cs" />
+    <Compile Include="Exceptions\InvalidConditionException.cs" />
+    <Compile Include="Exceptions\InvalidOperandsException.cs" />
+    <Compile Include="Exceptions\UnexpectedTypeException.cs" />
+    <Compile Include="Exceptions\UnresolvedVariableException.cs" />
     <Compile Include="EnvironmentTreeBuilder.cs" />
+    <Compile Include="ValueResolverVisitor.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\QuestScript.Parser\QuestScript.Parser.csproj">

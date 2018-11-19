@@ -12,18 +12,22 @@ namespace QuestScript.Tryouts
         {
 
             var lexer = new QuestScriptLexer(new AntlrInputStream(@" 
-                x = ""www""    
-                if((3 > 0 and 4 < x) or (y > 3))
-                {
-                }
+                x = 4    
+                y = x                
             "));
-
-            //var collectorTokenSource = new CollectorTokenSource(lexer);
             var tokens = new CommonTokenStream(lexer);
             var parser = new QuestScriptParser(tokens);
+
             var environmentTreeBuilder = new EnvironmentTreeBuilder();            
             var scriptTree = parser.script();
             environmentTreeBuilder.Visit(scriptTree);
+
+            var envTree = environmentTreeBuilder.Output;
+
+            foreach (var variable in envTree.DebugGetAllVariables())
+            {
+                Console.WriteLine(variable);
+            }
 
             foreach (var msg in environmentTreeBuilder.Errors.Select(e => e.Message))
                 Console.WriteLine(msg);

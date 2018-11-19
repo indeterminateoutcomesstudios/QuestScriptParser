@@ -1,8 +1,8 @@
 ﻿using Antlr4.Runtime;
 
-namespace QuestScript.Interpreter.ValidationExceptions
+namespace QuestScript.Interpreter.Exceptions
 {
-    public class UnresolvedVariableException : BaseValidationException
+    public class UnresolvedVariableException : BaseInterpreterException
     {
         public string Name { get; }
 

@@ -1,6 +1,6 @@
-﻿using QuestScript.Interpreter.Helpers;
+﻿using QuestScript.Interpreter.Exceptions;
+using QuestScript.Interpreter.Helpers;
 using QuestScript.Interpreter.ScriptElements;
-using QuestScript.Interpreter.ValidationExceptions;
 using QuestScript.Parser;
 
 namespace QuestScript.Interpreter

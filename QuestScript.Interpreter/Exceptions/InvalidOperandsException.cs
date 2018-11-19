@@ -1,9 +1,9 @@
 ﻿using Antlr4.Runtime;
 using QuestScript.Interpreter.ScriptElements;
 
-namespace QuestScript.Interpreter.ValidationExceptions
+namespace QuestScript.Interpreter.Exceptions
 {
-    public class InvalidOperandsException : BaseValidationException
+    public class InvalidOperandsException : BaseInterpreterException
     {
         private static string CreateMessage(string op, ObjectType left, ObjectType right)
         {

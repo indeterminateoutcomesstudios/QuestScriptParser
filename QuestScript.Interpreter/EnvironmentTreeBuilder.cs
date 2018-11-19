@@ -1,37 +1,37 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
+using QuestScript.Interpreter.Exceptions;
 using QuestScript.Interpreter.Helpers;
 using QuestScript.Interpreter.InterpreterElements;
 using QuestScript.Interpreter.ScriptElements;
-using QuestScript.Interpreter.ValidationExceptions;
 using QuestScript.Parser;
-using static System.Int32;
 using Environment = QuestScript.Interpreter.InterpreterElements.Environment;
 // ReSharper disable ArgumentsStyleLiteral
 
 namespace QuestScript.Interpreter
 {
-    public class EnvironmentTreeBuilder : QuestScriptBaseVisitor<bool>
+    public sealed class EnvironmentTreeBuilder : QuestScriptBaseVisitor<bool>
     {
         private Environment _current;
         private readonly TypeInferenceVisitor _typeInferenceVisitor;
+        private readonly ValueResolverVisitor _valueResolverVisitor;
+        private Environment _root;    
 
-        public Environment Root { get; private set; }       
+        public List<BaseInterpreterException> Errors { get; } = new List<BaseInterpreterException>();
 
-        public List<BaseValidationException> Errors { get; } = new List<BaseValidationException>();
-        public List<BaseValidationException> Warnings { get; } = new List<BaseValidationException>();
-
-        public Dictionary<ParserRuleContext, Environment> EnvironmentsByContext { get; } = new Dictionary<ParserRuleContext, Environment>();
+        private Dictionary<ParserRuleContext, Environment> _environmentsByContext = new Dictionary<ParserRuleContext, Environment>();
+        private EnvironmentTree _environmentTree;
 
         public EnvironmentTreeBuilder()
         {
             _typeInferenceVisitor = new TypeInferenceVisitor(this);
+            _valueResolverVisitor = new ValueResolverVisitor(this);
         }
+
+        public EnvironmentTree Output => 
+            _environmentTree ?? (_environmentTree = new EnvironmentTree(_root, _environmentsByContext));
 
         public override bool Visit(IParseTree tree)
         {
@@ -41,11 +41,11 @@ namespace QuestScript.Interpreter
 
         public override bool VisitScript(QuestScriptParser.ScriptContext context)
         {
-            Root = new Environment
+            _root = new Environment
             {
                 Context = context
             };
-            _current = Root;
+            _current = _root;
             return base.VisitScript(context);
         }
 
@@ -79,11 +79,11 @@ namespace QuestScript.Interpreter
         {
             _current = _current.CreateChild(context); //push
 
-            if (!IsVariableDefined(_current, context.iterationVariable.Text))
+            if (!_current.IsVariableDefined(context.iterationVariable.Text))
             {
                 //note: we know that iteration variable of "for" is integer because syntax specifies so
                 DeclareLocalVariable(context.iterationVariable.Text, context, context, ObjectType.Integer,
-                    () => Parse(context.iterationStart.Text),isIterationVariable:true);
+                    new Lazy<object>(() => int.Parse(context.iterationStart.Text)),isIterationVariable:true);
             }
             else
             {
@@ -100,8 +100,13 @@ namespace QuestScript.Interpreter
         public override bool VisitForEachStatement(QuestScriptParser.ForEachStatementContext context)
         {
             _current = _current.CreateChild(context); //push
+            var enumerationVariableType = _typeInferenceVisitor.Visit(context.enumerationVariable);
+            if (enumerationVariableType != ObjectType.List)
+            {
+                Errors.Add(new UnexpectedTypeException(context,ObjectType.List,enumerationVariableType,context.enumerationVariable,"'foreach' can only enumerate on collection types."));
+            }
 
-            if (!IsVariableDefined(_current, context.iterationVariable.Text))
+            if (!_current.IsVariableDefined(context.iterationVariable.Text))
             {
                 //TODO: investigate possibility of using some sort of enumerator for this case
                 DeclareLocalVariable(context.iterationVariable.Text,context, context, context.enumerationVariable, isEnumerationVariable:true);
@@ -124,7 +129,7 @@ namespace QuestScript.Interpreter
             //assign relevant statement to environment, so we can later resolve variables
             //and check if they are used before they are defined
             _current.Statements.Add(context);
-            EnvironmentsByContext.Add(context,_current);
+            _environmentsByContext.Add(context,_current);
             return base.VisitStatement(context);
         }      
 
@@ -132,18 +137,19 @@ namespace QuestScript.Interpreter
         public override bool VisitIdentifierOperand(QuestScriptParser.IdentifierOperandContext context)
         {
             //if the parent is RValue -> it is an identifier that is part of an expression, and not a statement
-            if(context.HasParentOfType<QuestScriptParser.RValueContext>() && !IsVariableDefined(_current,context.GetText()))
+            if(context.HasParentOfType<QuestScriptParser.RValueContext>() && !_current.IsVariableDefined(context.GetText()))
                 RecordErrorIfUndefined(context,context.GetText());
 
             return base.VisitIdentifierOperand(context);
-        }
+        }        
 
         public override bool VisitAssignmentStatement(QuestScriptParser.AssignmentStatementContext context)
         {
             var success = base.VisitAssignmentStatement(context);
 
             var identifier = context.LVal.GetText();
-            var variableDefined = IsVariableDefined(_current,identifier);
+            var variable = _current.GetVariable(identifier);
+            var variableDefined = variable != null;
             var isMemberAssignment = identifier.Contains(".");
             
             if (!isMemberAssignment && !variableDefined)
@@ -156,6 +162,8 @@ namespace QuestScript.Interpreter
                 var lValueType = _typeInferenceVisitor.Visit(context.LVal);
                 if(lValueType != rValueType && !TypeUtil.CanConvert(rValueType,lValueType))
                     Errors.Add(new UnexpectedTypeException(context,lValueType,rValueType,context.RVal,"Moreover I couldn't find suitable implicit casting."));
+
+                variable.Value = new Lazy<object>(() => _valueResolverVisitor.Visit(context.RVal));
             }
 
             return success;
@@ -184,13 +192,13 @@ namespace QuestScript.Interpreter
             return base.VisitIfStatement(context);
         }
 
-        private void DeclareLocalVariable(string name,ParserRuleContext statementContext, ParserRuleContext variableContext, ObjectType type, Func<object> valueResolver, bool isEnumerationVariable = false, bool isIterationVariable = false)
+        private void DeclareLocalVariable(string name,ParserRuleContext statementContext, ParserRuleContext variableContext, ObjectType type, Lazy<object> valueResolver, bool isEnumerationVariable = false, bool isIterationVariable = false)
         {
             _current.LocalVariables.Add(new Variable
             {
                 Name = name,
                 Type = type,
-                ValueResolver = valueResolver,
+                Value = valueResolver,
                 IsEnumerationVariable = isEnumerationVariable, 
                 IsIterationVariable = isIterationVariable, //if true, prevent changes to the variable
                 Context = variableContext
@@ -208,47 +216,19 @@ namespace QuestScript.Interpreter
                 IsEnumerationVariable = isEnumerationVariable, 
                 IsIterationVariable = isIterationVariable,
                 Context = variableContext,
-                ValueResolver = () => throw new NotImplementedException("Instead of this exception, there should be an output of value resolver visitor, which will be used on the parameter")
+                Value = new Lazy<object>(() => _valueResolverVisitor.Visit(valueContext))
             });
             _current = _current.CreateNextSibling(statementContext);
         }
 
         //to be used by TypeInferenceVisitor
-        internal Variable GetVariableFromCurrentEnvironment(string name) => GetVariable(_current, name);
+        internal Variable GetVariableFromCurrentEnvironment(string name) => _current.GetVariable(name);
 
         private void RecordErrorIfUndefined(ParserRuleContext context, string variable)
         {
-            if (!IsVariableDefined(_current, variable))
+            if (!_current.IsVariableDefined(variable))
                 Errors.Add(new UnresolvedVariableException(variable, context));
         }
-        
-        private Variable GetVariable(Environment environment, string name)
-        {
-            while (environment != null)
-            {
-                //first, check in the current environment
-                var variable = environment.LocalVariables.FirstOrDefault(v => v.Name.Equals(name));
-                if (variable != null)
-                    return variable;
-
-                //then, iterate back over siblings and see if it is defined BEFORE the current one
-                while(environment.PrevSibling != null) 
-                {
-                    environment = environment.PrevSibling;
-                    variable = environment.LocalVariables.FirstOrDefault(v => v.Name.Equals(name));
-                    if (variable != null)
-                        return variable;
-                }
-
-                environment = environment.Parent;
-            }
-
-            return null;
-        }
-        
-        private bool IsVariableDefined(Environment environment, string name)
-        {
-            return GetVariable(environment, name) != null;
-        }
+               
     }
 }
