@@ -28,17 +28,12 @@ namespace QuestScript.Interpreter
             _environmentBuilder = environmentBuilder;
         }
 
-        public List<BaseInterpreterException> Errors { get; } = new List<BaseInterpreterException>();
+        private List<BaseInterpreterException> Errors => _environmentBuilder.Errors;
 
         public override object VisitIdentifierOperand(QuestScriptParser.IdentifierOperandContext context)
         {
             var variable = _environmentBuilder.GetVariableFromCurrentEnvironment(context.GetText());
-            if (variable != null)
-            {
-                return variable.Value;
-            }
-
-            return null;
+            return variable != null ? variable.Value : null;
         }
 
         public override object VisitParenthesizedExpression(QuestScriptParser.ParenthesizedExpressionContext context) => context.expr.Accept(this);
@@ -95,6 +90,11 @@ namespace QuestScript.Interpreter
                     case "-":
                         return leftValueAsNumber - rightValueAsNumber;
                     case "/":
+                        if (rightValueAsNumber == 0)
+                        {
+                            var error = new DivisionByZeroException(context);
+                            Errors.Add(error);
+                        }
                         return leftValueAsNumber / rightValueAsNumber;
                     case "%":
                         return leftValueAsNumber % rightValueAsNumber;

@@ -91,7 +91,7 @@ namespace QuestScript.Interpreter
         private ObjectType VisitLogicalExpression(ParserRuleContext context, string op, ParserRuleContext left, ParserRuleContext right)
         {
             var leftType = left.Accept(this);
-            var rightType =right.Accept(this);
+            var rightType = right.Accept(this);
 
             if (leftType == ObjectType.Boolean &&
                 rightType == ObjectType.Boolean)

@@ -197,6 +197,7 @@
   <ItemGroup>
     <Compile Include="EnvironmentTree.cs" />
     <Compile Include="EnvironmentExtensions.cs" />
+    <Compile Include="Exceptions\DivisionByZeroException.cs" />
     <Compile Include="Exceptions\FailedToInferTypeException.cs" />
     <Compile Include="Exceptions\FailedValueInterpretation.cs" />
     <Compile Include="Helpers\CollectorTokenSource.cs" />
