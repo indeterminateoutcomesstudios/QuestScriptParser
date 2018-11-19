@@ -15,11 +15,16 @@ namespace QuestScript.Interpreter
     public class ExpressionValueResolverVisitor : QuestScriptBaseVisitor<object>
     {
         private readonly EnvironmentTreeBuilder _environmentBuilder;
-        private readonly TypeAccessor _lazyTypeAccessor;
+        private static readonly TypeAccessor LazyTypeAccessor;
+
+        static ExpressionValueResolverVisitor()
+        {
+            LazyTypeAccessor = TypeAccessor.Create(typeof(Lazy<object>));
+        }
+
         public ExpressionValueResolverVisitor(EnvironmentTreeBuilder environmentBuilder)
         {
             _environmentBuilder = environmentBuilder;
-            _lazyTypeAccessor = TypeAccessor.Create(typeof(Lazy<object>));
         }
 
         public List<BaseInterpreterException> Errors { get; } = new List<BaseInterpreterException>();
@@ -158,6 +163,6 @@ namespace QuestScript.Interpreter
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private object GetValueOrLazyValue(object valueOrLazy) => 
-            valueOrLazy is Lazy<object> ? _lazyTypeAccessor[valueOrLazy, "Value"] : valueOrLazy;
+            valueOrLazy is Lazy<object> ? LazyTypeAccessor[valueOrLazy, "Value"] : valueOrLazy;
     }
 }
