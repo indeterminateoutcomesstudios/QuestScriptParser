@@ -90,11 +90,12 @@ expression:
         rValue														#OperandExpression
     |   LeftParen expr = expression RightParen						#ParenthesizedExpression
     |   instance = expression '[' parameter = expression ']'		#IndexerExpression
+    |   Not expr = expression										#NotExpression
+    |   left = expression op = 'and' right = expression				#AndExpression
+    |   left = expression op = 'or' right = expression				#OrExpression
     |   left = expression op = relationalOp right = expression		#RelationalExpression
-    |   left = expression op = logicalOp right = expression			#LogicalExpression
     |   left = expression op = multiplicativeOp right = expression  #MultiplicativeExpression
     |   left = expression op = additiveOp right = expression		#AdditiveExpression
-    |   Not expr = expression										#NotExpression
     |   op = unaryOp expr = expression								#PrefixUnaryExpression
     |   expr = expression op = (PlusPlus|MinusMinus)				#PostfixUnaryExpression
 	|	arrayLiteral												#ArrayLiteralExpression

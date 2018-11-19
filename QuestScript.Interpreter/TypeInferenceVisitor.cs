@@ -78,10 +78,20 @@ namespace QuestScript.Interpreter
             return ObjectType.Unknown;
         }
 
-        public override ObjectType VisitLogicalExpression(QuestScriptParser.LogicalExpressionContext context)
+        public override ObjectType VisitOrExpression(QuestScriptParser.OrExpressionContext context)
         {
-            var leftType = context.left.Accept(this);
-            var rightType = context.right.Accept(this);
+            return VisitLogicalExpression(context, context.op.Text, context.left, context.right);
+        }
+
+        public override ObjectType VisitAndExpression(QuestScriptParser.AndExpressionContext context)
+        {
+            return VisitLogicalExpression(context, context.op.Text, context.left, context.right);
+        }
+
+        private ObjectType VisitLogicalExpression(ParserRuleContext context, string op, ParserRuleContext left, ParserRuleContext right)
+        {
+            var leftType = left.Accept(this);
+            var rightType =right.Accept(this);
 
             if (leftType == ObjectType.Boolean &&
                 rightType == ObjectType.Boolean)
@@ -89,7 +99,7 @@ namespace QuestScript.Interpreter
                 return ObjectType.Boolean;
             }
 
-            _environmentBuilder.Errors.Add(new InvalidOperandsException(context,context.op.GetText(),leftType,rightType));
+            _environmentBuilder.Errors.Add(new InvalidOperandsException(context,op,leftType,rightType));
             return ObjectType.Unknown;
         }
 
