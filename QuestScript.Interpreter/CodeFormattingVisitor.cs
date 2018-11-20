@@ -212,8 +212,8 @@ namespace QuestScript.Interpreter
         public override bool VisitChildren(IRuleNode node)
         {
             int childCount = node.ChildCount;
-            bool _ = true;
-            for (int i = 0; i < childCount && this.ShouldVisitNextChild(node, _); ++i)
+            var _ = true;
+            for (int i = 0; i < childCount && ShouldVisitNextChild(node, _); ++i)
             {
                 var child = node.GetChild(i);
                 if (child.ChildCount == 0)

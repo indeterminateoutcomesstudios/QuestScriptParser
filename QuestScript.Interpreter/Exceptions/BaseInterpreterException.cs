@@ -3,49 +3,6 @@ using Antlr4.Runtime;
 
 namespace QuestScript.Interpreter.Exceptions
 {
-    public class Test : IEquatable<Test>
-    {
-        public int x { get;set; }
-        public int y { get;set; }
-        public int zx { get;set; }
-
-        public bool Equals(Test other)
-        {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
-            return x == other.x && y == other.y && zx == other.zx;
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
-            return Equals((Test) obj);
-        }
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                var hashCode = x;
-                hashCode = (hashCode * 397) ^ y;
-                hashCode = (hashCode * 397) ^ zx;
-                return hashCode;
-            }
-        }
-
-        public static bool operator ==(Test left, Test right)
-        {
-            return Equals(left, right);
-        }
-
-        public static bool operator !=(Test left, Test right)
-        {
-            return !Equals(left, right);
-        }
-    }
-
     public class BaseInterpreterException : Exception, IEquatable<BaseInterpreterException>
     {
         public ParserRuleContext Context { get; }
@@ -80,7 +37,7 @@ namespace QuestScript.Interpreter.Exceptions
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (obj.GetType() != GetType()) return false;
             return Equals((BaseInterpreterException) obj);
         }
 

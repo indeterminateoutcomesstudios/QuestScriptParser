@@ -14,8 +14,7 @@ namespace QuestScript.Interpreter
     {
         private static readonly Type StatementContextType = typeof(QuestScriptParser.StatementContext);
 
-        private Dictionary<ParserRuleContext, Environment> _environmentsByContext =
-            new Dictionary<ParserRuleContext, Environment>();
+        private Dictionary<ParserRuleContext, Environment> _environmentsByContext;
 
         public Environment Root { get; }
 
@@ -49,6 +48,6 @@ namespace QuestScript.Interpreter
             GetVariable(name, context) != null;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IEnumerable<Variable> DebugGetAllVariables() => new HashSet<Variable>(Root.IterateBFS().SelectMany(env => env.LocalVariables));
+        public IEnumerable<Variable> DebugGetAllVariables() => new HashSet<Variable>(Root.IterateBfs().SelectMany(env => env.LocalVariables));
     }
 }

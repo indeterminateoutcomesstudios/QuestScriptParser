@@ -12,7 +12,7 @@ namespace QuestScript.Tryouts
         {
             var lexer = new QuestScriptLexer(new AntlrInputStream(@" 
                 z = [[1,2],[""Foo\""Bar"",""Bar""],[5,6]]    
-                x = not 3
+                x = not true
             "));
             var tokens = new CommonTokenStream(lexer);
             var parser = new QuestScriptParser(tokens);

@@ -44,7 +44,7 @@ namespace QuestScript.Interpreter.Helpers
         public static bool IsNumeric(ObjectType type) => type == ObjectType.Double || type == ObjectType.Integer;
 
         public static bool CanConvert(ObjectType from, ObjectType to) => 
-            _allowedImplicitCasting.TryGetValue(@from, out var conversions) && conversions.Contains(to);
+            _allowedImplicitCasting.TryGetValue(from, out var conversions) && conversions.Contains(to);
 
         //enough for our purposes
         private static bool IsNumeric(this object obj)

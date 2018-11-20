@@ -6,7 +6,7 @@ namespace QuestScript.Interpreter
 {
     public static class EnvironmentExtensions
     {
-        public static Variable GetVariable(this InterpreterElements.Environment environment, string name)
+        public static Variable GetVariable(this Environment environment, string name)
         {
             while (environment != null)
             {
@@ -21,17 +21,17 @@ namespace QuestScript.Interpreter
             return null;
         }
 
-        public static bool IsVariableDefined(this InterpreterElements.Environment environment, string name)
+        public static bool IsVariableDefined(this Environment environment, string name)
         {
             return GetVariable(environment, name) != null;
         }
 
  
 
-        public static IEnumerable<InterpreterElements.Environment> IterateBFS(this InterpreterElements.Environment environment)
+        public static IEnumerable<Environment> IterateBfs(this Environment environment)
         {
             yield return environment;
-            foreach (var env in environment.Children.SelectMany(c => c.IterateBFS()))
+            foreach (var env in environment.Children.SelectMany(c => c.IterateBfs()))
                 yield return env;
         }
     }

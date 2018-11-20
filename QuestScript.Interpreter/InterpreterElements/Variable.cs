@@ -33,8 +33,7 @@ namespace QuestScript.Interpreter.InterpreterElements
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
-            return Equals((Variable) obj);
+            return obj.GetType() == GetType() && Equals((Variable) obj);
         }
 
         public override int GetHashCode()

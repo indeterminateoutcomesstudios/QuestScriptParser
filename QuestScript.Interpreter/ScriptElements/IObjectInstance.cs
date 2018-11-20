@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace QuestScript.Interpreter.ScriptElements
+﻿namespace QuestScript.Interpreter.ScriptElements
 {
     public interface IObjectInstance : IObjectTypeInfo, IInstance
     {
