@@ -112,7 +112,7 @@ namespace QuestScript.Interpreter
             var type = _environmentBuilder.TypeInferenceVisitor.Visit(context.expr);
             if (type != ObjectType.Boolean)
             {
-                _environmentBuilder.Errors.Add(new UnexpectedTypeException(context, ObjectType.Boolean, type, context.expr, "'not' operators are applicable only on boolean expressions."));
+                _environmentBuilder.Errors.Add(new UnexpectedTypeException(context, ObjectType.Boolean, type, context.expr, "In general, 'not' operators are applicable only on boolean expressions."));
                 return new Lazy<object>(() => null);
             }
 

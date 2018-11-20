@@ -165,7 +165,7 @@ namespace QuestScript.Interpreter
                 var rValueType = _typeInferenceVisitor.Visit(context.RVal);
                 var lValueType = _typeInferenceVisitor.Visit(context.LVal);
                 if(lValueType != rValueType && !TypeUtil.CanConvert(rValueType,lValueType))
-                    Errors.Add(new UnexpectedTypeException(context,lValueType,rValueType,context.RVal,"Moreover I couldn't find suitable implicit casting."));
+                    Errors.Add(new UnexpectedTypeException(context,lValueType,rValueType,context.RVal,"Also, tried to find suitable implicit casting, but didn't find anything."));
 
                 variable.Value = _valueResolverVisitor.Visit(context.RVal);
             }
