@@ -20,7 +20,7 @@ namespace QuestScript.Interpreter
             _environmentBuilder = environmentBuilder;
         }
 
-        private List<BaseInterpreterException> Errors => _environmentBuilder.Errors;
+        private HashSet<BaseInterpreterException> Errors => _environmentBuilder.Errors;
 
         public override Lazy<object> VisitIdentifierOperand(QuestScriptParser.IdentifierOperandContext context)
         {
@@ -69,17 +69,40 @@ namespace QuestScript.Interpreter
         public override Lazy<object> VisitMultiplicativeExpression(QuestScriptParser.MultiplicativeExpressionContext context) =>
             VisitArithmeticExpression(context, context.op, context.left, context.right);
 
-        private Lazy<object> VisitArithmeticExpression(ParserRuleContext context, ParserRuleContext op,ParserRuleContext left, ParserRuleContext right)
+        public override Lazy<object> VisitRelationalExpression(QuestScriptParser.RelationalExpressionContext context)
         {
+            var leftType = _environmentBuilder.TypeInferenceVisitor.Visit(context.left);
+            var rightType = _environmentBuilder.TypeInferenceVisitor.Visit(context.right);
+
             return new Lazy<object>(() =>
             {
-                var expressionType = _environmentBuilder.TypeInferenceVisitor.Visit(context);
+                return false;
+            });
+        }
+
+        private Lazy<object> VisitArithmeticExpression(ParserRuleContext context, ParserRuleContext op,ParserRuleContext left, ParserRuleContext right)
+        {
+            var expressionType = _environmentBuilder.TypeInferenceVisitor.Visit(context);
+            if (!TypeUtil.IsNumeric(expressionType) && expressionType != ObjectType.String)
+            {
+                _environmentBuilder.Errors.Add(
+                    new InvalidOperandsException(
+                        context,
+                        op.GetText(),
+                        _environmentBuilder.TypeInferenceVisitor.Visit(left),
+                        _environmentBuilder.TypeInferenceVisitor.Visit(right)));
+
+                return new Lazy<object>(() => null);
+            }
+            return new Lazy<object>(() =>
+            {
 
                 var leftValue = left.Accept(this).GetValueOrLazyValue();
                 var rightValue = right.Accept(this).GetValueOrLazyValue();
 
                 if (op.GetText() == "+")
                 {
+                    //maybe we have string concatenation?
                     if (leftValue is string leftStr)
                         return leftStr + rightValue;
                     if (rightValue is string rightStr)

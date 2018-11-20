@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using QuestScript.Interpreter.Exceptions;
@@ -22,7 +23,7 @@ namespace QuestScript.Interpreter
         public TypeInferenceVisitor TypeInferenceVisitor => _typeInferenceVisitor;
         public ValueResolverVisitor ValueResolverVisitor => _valueResolverVisitor;
 
-        public List<BaseInterpreterException> Errors { get; } = new List<BaseInterpreterException>();
+        public HashSet<BaseInterpreterException> Errors { get; } = new HashSet<BaseInterpreterException>();
 
         private Dictionary<ParserRuleContext, Environment> _environmentsByContext = new Dictionary<ParserRuleContext, Environment>();
         private EnvironmentTree _environmentTree;
@@ -230,6 +231,5 @@ namespace QuestScript.Interpreter
             if (!_current.IsVariableDefined(variable))
                 Errors.Add(new UnresolvedVariableException(variable, context));
         }
-               
     }
 }
