@@ -82,7 +82,6 @@ scriptAssignmentStatement: LVal = lValue  '=>' RVal = codeBlockStatement;
 arrayLiteral : '[' (elements += expression (',' elements += expression)*)? ']';
 
 postfixUnaryStatement: expression op = (PlusPlus|MinusMinus);
-prefixUnaryStatement: op = unaryOp expr = expression;
 
 //expressions evaluate to some value...
 expression:
@@ -113,11 +112,6 @@ lValue
     |   instance = lValue '.' member = Identifier   #MemberFieldOperand
     ;
 
-
-unaryOp:
-        '++'    #PlusPlusOp
-    |   '--'    #MinusMinusOp
-    ;
 
 relationalOp:
         '>'     #GreaterOp

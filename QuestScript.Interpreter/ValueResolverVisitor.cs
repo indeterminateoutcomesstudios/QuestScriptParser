@@ -181,7 +181,11 @@ namespace QuestScript.Interpreter
 
         public override Lazy<object> VisitStringLiteral(QuestScriptParser.StringLiteralContext context)
         {
-            return new Lazy<object>(context.GetText);
+            return new Lazy<object>(() =>
+            {
+                var stringValue = context.GetText().Trim('"').Replace("\\\"","\"");           
+                return stringValue;
+            });
         }
 
         public override Lazy<object> VisitBooleanLiteral(QuestScriptParser.BooleanLiteralContext context)

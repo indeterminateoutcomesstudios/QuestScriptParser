@@ -11,8 +11,8 @@ namespace QuestScript.Tryouts
         static void Main(string[] args)
         {
             var lexer = new QuestScriptLexer(new AntlrInputStream(@" 
-                z = [[1,2],[""3"",""4""],[5,6]]
-                x = (z[1][0])++ + 1
+                z = [[1,2],[""Foo\""Bar"",""Bar""],[5,6]]
+                x = z[1][0] + ""Test\""ABC""
             "));
             var tokens = new CommonTokenStream(lexer);
             var parser = new QuestScriptParser(tokens);

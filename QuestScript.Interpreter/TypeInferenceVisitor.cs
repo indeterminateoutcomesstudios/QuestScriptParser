@@ -131,20 +131,19 @@ namespace QuestScript.Interpreter
         {
             //TODO : add type checks of arrays within arrays, so verifying type of [[1,2],["foo","bar"],[5,6]] would result in error
             //make sure that all elements in the literal have the same type
-            if (context.expr._elements.Count > 0)
-            {
-                var firstItemType = context.expr._elements[0].Accept(this);
-                for (int i = 1; i < context.expr._elements.Count; i++)
-                {
-                    var itemType = context.expr._elements[i].Accept(this);
-                    if (itemType != firstItemType)
-                    {
-                        _environmentBuilder.Errors.Add(new InvalidArrayLiteralException(context,
-                            $"Expected all values in the array to be of type '{firstItemType}', but found an item of type '{itemType}'."));
-                        return ObjectType.Unknown;
-                    }
-                }
+            if (context.expr._elements.Count <= 0) 
+                return ObjectType.List;
 
+            var firstItemType = context.expr._elements[0].Accept(this);
+            for (int i = 1; i < context.expr._elements.Count; i++)
+            {
+                var itemType = context.expr._elements[i].Accept(this);
+                if (itemType != firstItemType)
+                {
+                    _environmentBuilder.Errors.Add(new InvalidArrayLiteralException(context,
+                        $"Expected all values in the array to be of type '{firstItemType}', but found an item of type '{itemType}'."));
+                    return ObjectType.Unknown;
+                }
             }
             return ObjectType.List;        
         }
