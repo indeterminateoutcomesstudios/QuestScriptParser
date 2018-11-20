@@ -129,6 +129,7 @@ namespace QuestScript.Interpreter
 
         public override ObjectType VisitArrayLiteralExpression(QuestScriptParser.ArrayLiteralExpressionContext context)
         {
+            //TODO : add type checks of arrays within arrays, so verifying type of [[1,2],["foo","bar"],[5,6]] would result in error
             //make sure that all elements in the literal have the same type
             if (context.expr._elements.Count > 0)
             {
