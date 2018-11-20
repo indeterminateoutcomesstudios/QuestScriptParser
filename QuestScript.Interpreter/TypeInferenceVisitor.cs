@@ -1,4 +1,5 @@
-﻿using Antlr4.Runtime;
+﻿using System.Collections;
+using Antlr4.Runtime;
 using QuestScript.Interpreter.Exceptions;
 using QuestScript.Interpreter.Helpers;
 using QuestScript.Interpreter.ScriptElements;
@@ -72,6 +73,60 @@ namespace QuestScript.Interpreter
             return ObjectType.Unknown;
         }
 
+        public override ObjectType VisitIndexerExpression(QuestScriptParser.IndexerExpressionContext context)
+        {
+            var variableType = context.instance.Accept(this);
+            if (variableType == ObjectType.List)
+            {
+                //first verify that the indexer parameter is integer, otherwise 
+                //in the context of lists the expression makes no sense
+                var parameterType = context.parameter.Accept(this);
+                if (!TypeUtil.IsNumeric(parameterType))
+                {
+                    _environmentBuilder.Errors.Add(
+                        new UnexpectedTypeException(
+                            context,ObjectType.Integer,
+                            parameterType,
+                            context.parameter,
+                            "When using list accessor, the index should be of integer type. For example 'x = list[23]' is a valid statement."));
+                    return ObjectType.Unknown;
+                }
+
+                //at this point the expression we are accessing through indexer SHOULD be evaluable,
+                //so we are simply resolving it's value sooner
+                var value =  _environmentBuilder.ValueResolverVisitor.Visit(context.instance).Value.GetValueOrLazyValue();
+                var valueAsArray = value as ArrayList;
+                if (valueAsArray == null) //precaution, shouldn't happen
+                {
+                    if (!TypeUtil.TryConvertType(value.GetType(), out var resultingType))
+                    {
+                        resultingType = ObjectType.Unknown;
+                    }
+
+                    _environmentBuilder.Errors.Add(
+                        new UnexpectedTypeException(
+                            context,ObjectType.List,
+                            resultingType,
+                            context.parameter,
+                            $"Expected {context.instance.GetText()} to be a 'ObjectType.List', but it is '{resultingType}'. Thus, cannot infer the resulting type of the indexer expression"));
+                    return ObjectType.Unknown;
+                }
+
+                if (!TypeUtil.TryConvertType(valueAsArray[0].GetType(), out var itemType))
+                    itemType = ObjectType.Unknown;
+
+                return itemType;
+            }
+
+            //TODO: add here support for dictionaries (object attributes and function parameter may be of dictionary type...)
+            return ObjectType.Unknown;
+        }
+
+        public override ObjectType VisitScript(QuestScriptParser.ScriptContext context)
+        {
+            return ObjectType.Script;
+        }
+
         public override ObjectType VisitArrayLiteralExpression(QuestScriptParser.ArrayLiteralExpressionContext context)
         {
             //make sure that all elements in the literal have the same type
@@ -92,9 +147,6 @@ namespace QuestScript.Interpreter
             }
             return ObjectType.List;        
         }
-
-        public override ObjectType VisitPrefixUnaryExpression(QuestScriptParser.PrefixUnaryExpressionContext context) => 
-            context.expr.Accept(this);
 
         public override ObjectType VisitPostfixUnaryExpression(QuestScriptParser.PostfixUnaryExpressionContext context) =>
             context.expr.Accept(this);

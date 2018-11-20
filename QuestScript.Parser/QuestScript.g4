@@ -22,7 +22,6 @@ statement
     |   returnStatement
 	|	switchCaseStatement
 	|	postfixUnaryStatement
-	|	prefixUnaryStatement
     ;
 
 switchCaseStatement: 
@@ -92,7 +91,6 @@ expression:
     |   instance = expression '[' parameter = expression ']'		#IndexerExpression
     |   left = expression op = multiplicativeOp right = expression  #MultiplicativeExpression
     |   left = expression op = additiveOp right = expression		#AdditiveExpression
-    |   op = unaryOp expr = expression								#PrefixUnaryExpression
     |   expr = expression op = (PlusPlus|MinusMinus)				#PostfixUnaryExpression
 	|	expr = arrayLiteral											#ArrayLiteralExpression
 	|	'this'														#ThisExpression
@@ -117,9 +115,7 @@ lValue
 
 
 unaryOp:
-        '+'     #UnaryPlusOp
-    |   '-'     #UnaryMinusOp
-    |   '++'    #PlusPlusOp
+        '++'    #PlusPlusOp
     |   '--'    #MinusMinusOp
     ;
 

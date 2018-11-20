@@ -10,6 +10,7 @@
         Script,
         Boolean,
         List,
+        Dictionary,
         Void,
         Null
     }

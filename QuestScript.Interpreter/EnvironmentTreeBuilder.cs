@@ -20,6 +20,7 @@ namespace QuestScript.Interpreter
         private Environment _root;
 
         public TypeInferenceVisitor TypeInferenceVisitor => _typeInferenceVisitor;
+        public ValueResolverVisitor ValueResolverVisitor => _valueResolverVisitor;
 
         public List<BaseInterpreterException> Errors { get; } = new List<BaseInterpreterException>();
 

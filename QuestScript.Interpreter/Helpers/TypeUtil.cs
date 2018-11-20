@@ -29,8 +29,15 @@ namespace QuestScript.Interpreter.Helpers
             { ObjectType.Void, typeof(void) }
         };
 
+        //since the mapping is 1:1 - there is no issue here
+        private static Dictionary<Type, ObjectType> _conversionFromType =
+            _conversionToType.ToDictionary(x => x.Value, x => x.Key);
+
         public static bool TryConvertType(ObjectType type, out Type result) =>
-            _conversionToType.TryGetValue(type, out result);
+            _conversionToType.TryGetValue(type, out result);        
+
+        public static bool TryConvertType(Type type, out ObjectType result) =>
+            _conversionFromType.TryGetValue(type, out result);        
 
         public static bool IsComparable(ObjectType type) => _comparableTypes.Contains(type);
 

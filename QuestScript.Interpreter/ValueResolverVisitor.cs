@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using Antlr4.Runtime;
-using FastMember;
 using QuestScript.Interpreter.Exceptions;
 using QuestScript.Interpreter.Helpers;
 using QuestScript.Interpreter.ScriptElements;
@@ -15,13 +13,7 @@ namespace QuestScript.Interpreter
     //resolver for values of object attributes and local variables
     public class ValueResolverVisitor : QuestScriptBaseVisitor<Lazy<object>>
     {
-        private readonly EnvironmentTreeBuilder _environmentBuilder;
-        private static readonly TypeAccessor LazyTypeAccessor;
-
-        static ValueResolverVisitor()
-        {
-            LazyTypeAccessor = TypeAccessor.Create(typeof(Lazy<object>));
-        }
+        private readonly EnvironmentTreeBuilder _environmentBuilder;       
 
         public ValueResolverVisitor(EnvironmentTreeBuilder environmentBuilder)
         {
@@ -39,6 +31,36 @@ namespace QuestScript.Interpreter
             });
         }
 
+        public override Lazy<object> VisitIndexerExpression(QuestScriptParser.IndexerExpressionContext context)
+        {
+            //this does necessary type checks.            
+            var valueType = _environmentBuilder.TypeInferenceVisitor.Visit(context);
+            if (valueType == ObjectType.Unknown) //failed at one or more type checks
+            {
+                return new Lazy<object>(() => null);
+            }
+
+            var instanceType = _environmentBuilder.TypeInferenceVisitor.Visit(context.instance);
+            if (instanceType == ObjectType.List)
+            {
+                return new Lazy<object>(() =>
+                {
+                    //we can assume those types are there because we did type checks with TypeInferenceVisitor
+                    var listArray = (ArrayList) context.instance.Accept(this).Value.GetValueOrLazyValue();
+                    return listArray[int.Parse(context.parameter.Accept(this).Value.GetValueOrLazyValue().ToString())];
+                });
+            }
+
+            if (instanceType == ObjectType.Dictionary)
+            {
+                throw new NotImplementedException("Support for dictionaries is currently not implemented");
+                //TODO : add support for dictionaries
+            }
+
+            _environmentBuilder.Errors.Add(new UnexpectedTypeException(context,ObjectType.List,instanceType,context.instance,$"Indexer expression must be applied to either list or a dictionary, and this was '{instanceType}'."));
+            return base.VisitIndexerExpression(context);
+        }
+
         public override Lazy<object> VisitParenthesizedExpression(QuestScriptParser.ParenthesizedExpressionContext context) => context.expr.Accept(this);
 
         public override Lazy<object> VisitAdditiveExpression(QuestScriptParser.AdditiveExpressionContext context) =>
@@ -53,8 +75,8 @@ namespace QuestScript.Interpreter
             {
                 var expressionType = _environmentBuilder.TypeInferenceVisitor.Visit(context);
 
-                var leftValue = GetValueOrLazyValue(left.Accept(this));
-                var rightValue = GetValueOrLazyValue(right.Accept(this));
+                var leftValue = left.Accept(this).GetValueOrLazyValue();
+                var rightValue = right.Accept(this).GetValueOrLazyValue();
 
                 if (op.GetText() == "+")
                 {
@@ -120,6 +142,43 @@ namespace QuestScript.Interpreter
             });
         }
 
+        public override Lazy<object> VisitStatement(QuestScriptParser.StatementContext context)
+        {
+            throw new NotSupportedException($"{nameof(ValueResolverVisitor)} should not be applied to statements, only expressions");
+        }     
+
+        public override Lazy<object> VisitPostfixUnaryExpression(QuestScriptParser.PostfixUnaryExpressionContext context)
+        {
+            var type = _environmentBuilder.TypeInferenceVisitor.Visit(context.expr);
+
+            if (!TypeUtil.IsNumeric(type))
+            {
+                _environmentBuilder.Errors.Add(new UnexpectedTypeException(context,ObjectType.Integer,type,context.expr,"Expected the incremented expression to be numeric, but it wasn't."));
+                return new Lazy<object>(() => null);
+            }
+
+            dynamic GetValueOfExpression(ParserRuleContext expr) => 
+                expr.Accept(this).Value.GetValueOrLazyValue();
+
+            switch (context.op.Text)
+            {
+                case "++":
+                    return new Lazy<object>(() =>
+                    {
+                        var plusplus = GetValueOfExpression(context.expr);
+                        return (object)++plusplus;
+                    });
+                case "--":
+                    return new Lazy<object>(() =>
+                    {
+                        var minusminus = GetValueOfExpression(context.expr);
+                        return (object)--minusminus;
+                    });
+            }
+
+            return base.VisitPostfixUnaryExpression(context);
+        }
+
         public override Lazy<object> VisitStringLiteral(QuestScriptParser.StringLiteralContext context)
         {
             return new Lazy<object>(context.GetText);
@@ -177,8 +236,8 @@ namespace QuestScript.Interpreter
                 var list = new ArrayList();
                 foreach (var el in context._elements)
                 {
-                    var value = el.Accept(this);
-                    list.Add(GetValueOrLazyValue(value));
+                    var value = el.Accept(this).GetValueOrLazyValue();
+                    list.Add(value);
                 }
 
                 return list;
@@ -187,13 +246,5 @@ namespace QuestScript.Interpreter
             return resultingValue;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private object GetValueOrLazyValue(object valueOrLazy)
-        {
-            if (!(valueOrLazy is Lazy<object>))
-                return valueOrLazy;
-          
-            return GetValueOrLazyValue(LazyTypeAccessor[valueOrLazy, "Value"]);
-        }
     }
 }

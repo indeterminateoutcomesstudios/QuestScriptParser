@@ -19,7 +19,7 @@ namespace QuestScript.Interpreter.InterpreterElements
 
         public override string ToString()
         {
-            return $"{nameof(Name)}: {Name}, {nameof(Type)}: {Type}, {nameof(Value)}: {Value.Value}";
+            return $"{nameof(Name)}: {Name}, {nameof(Type)}: {Type}, {nameof(Value)}: {Value?.Value}";
         }
 
         public bool Equals(Variable other)
