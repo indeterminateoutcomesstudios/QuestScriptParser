@@ -51,6 +51,8 @@ namespace QuestScript.Interpreter
         {
             return new Lazy<object>(() =>
             {
+                var expressionType = _environmentBuilder.TypeInferenceVisitor.Visit(context);
+
                 var leftValue = GetValueOrLazyValue(left.Accept(this));
                 var rightValue = GetValueOrLazyValue(right.Accept(this));
 
@@ -78,7 +80,6 @@ namespace QuestScript.Interpreter
                         Errors.Add(new FailedToInferTypeException(context, left, e));
                         return false;
                     }
-
                     return true;
                 }
 
@@ -88,12 +89,16 @@ namespace QuestScript.Interpreter
                 if (!TryConvertToNumber(rightValue, out var rightValueAsNumber))
                     return null;
 
+                object Cast(object val, ObjectType type) => 
+                    TypeUtil.TryConvert(val, type, out var castResult) ? 
+                        castResult : null;
+
                 switch (op.GetText())
                 {
                     case "+":
-                        return leftValueAsNumber + rightValueAsNumber;
+                        return Cast(leftValueAsNumber + rightValueAsNumber, expressionType);
                     case "-":
-                        return leftValueAsNumber - rightValueAsNumber;
+                        return Cast(leftValueAsNumber - rightValueAsNumber, expressionType);
                     case "/":
                         if (Math.Abs(rightValueAsNumber) < 0.00000000001) //epsilon :)
                         {
@@ -101,11 +106,13 @@ namespace QuestScript.Interpreter
                             Errors.Add(error);
                         }
 
-                        return leftValueAsNumber / rightValueAsNumber;
+                        var val = leftValueAsNumber / rightValueAsNumber;
+
+                        return Cast(val, expressionType);
                     case "%":
-                        return leftValueAsNumber % rightValueAsNumber;
+                        return Cast(leftValueAsNumber % rightValueAsNumber, expressionType);
                     case "*":
-                        return leftValueAsNumber * rightValueAsNumber;
+                        return Cast(leftValueAsNumber * rightValueAsNumber, expressionType);
                 }
 
                 //if not numeric and not string concatenation, nothing to do...
@@ -126,7 +133,7 @@ namespace QuestScript.Interpreter
         private Lazy<object> TryResolveLiteralValue<TContext>(TContext context, ObjectType type)
             where TContext : QuestScriptParser.LiteralContext
         {
-            if (!TypeUtil.TryConvertToType(type, out var dotnetType))
+            if (!TypeUtil.TryConvertType(type, out var dotnetType))
             {
                 return null;
             }

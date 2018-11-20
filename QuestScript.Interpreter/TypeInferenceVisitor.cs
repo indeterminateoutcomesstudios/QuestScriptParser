@@ -50,7 +50,7 @@ namespace QuestScript.Interpreter
 
             //if at least one is unknown, then we already have an error and can stop evaluating types
             if (leftType == ObjectType.Unknown || rightType == ObjectType.Unknown)
-                return ObjectType.Unknown;
+                return ObjectType.Unknown;        
 
             if (leftType == rightType)
                 return leftType;

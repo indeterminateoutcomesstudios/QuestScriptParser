@@ -29,34 +29,37 @@ namespace QuestScript.Interpreter.Helpers
             { ObjectType.Void, typeof(void) }
         };
 
-        public static bool TryConvertToType(ObjectType type, out Type result) =>
+        public static bool TryConvertType(ObjectType type, out Type result) =>
             _conversionToType.TryGetValue(type, out result);
 
-        public static bool IsComparable(ObjectType type) => _comparableTypes.Contains(type);        
+        public static bool IsComparable(ObjectType type) => _comparableTypes.Contains(type);
 
+        public static bool IsNumeric(ObjectType type) => type == ObjectType.Double || type == ObjectType.Integer;
 
         public static bool CanConvert(ObjectType from, ObjectType to) => 
             _allowedImplicitCasting.TryGetValue(@from, out var conversions) && conversions.Contains(to);
 
-        public static object Convert(object from,ObjectType fromType, ObjectType toType)
+        public static bool TryConvert(object from, ObjectType toType, out object result)
         {
-            if (!CanConvert(fromType, toType))
-                return null;
-
+            result = null;
             switch (toType)
             {
                 case ObjectType.Integer:
-                    return (int) from;
+                    result = (int)(double)from;
+                    return true;
                 case ObjectType.Double:
-                    return (double) from;
+                    result = (double)(int)from;
+                    return true;
                 case ObjectType.String:
-                    return from.ToString();
+                    result = from.ToString();
+                    return true;
                 case ObjectType.Object:
-                    return from;
+                    result = from;
+                    return true;
             }
             
             //precaution, should never arrive here...
-            return null;
+            return false;
         }
     }
 }
