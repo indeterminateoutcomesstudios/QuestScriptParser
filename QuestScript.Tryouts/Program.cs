@@ -11,10 +11,7 @@ namespace QuestScript.Tryouts
         static void Main(string[] args)
         {
             var lexer = new QuestScriptLexer(new AntlrInputStream(@" 
-                x = 5    
-                y = (4.6 / x + 4) * x
-                if(not (y++ < 0 or --y = 5) and x = 5){
-                }
+                z = [5.6,4.14,5.6666]
             "));
             var tokens = new CommonTokenStream(lexer);
             var parser = new QuestScriptParser(tokens);

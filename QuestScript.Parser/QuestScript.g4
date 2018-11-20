@@ -94,9 +94,9 @@ expression:
     |   left = expression op = additiveOp right = expression		#AdditiveExpression
     |   op = unaryOp expr = expression								#PrefixUnaryExpression
     |   expr = expression op = (PlusPlus|MinusMinus)				#PostfixUnaryExpression
-	|	arrayLiteral												#ArrayLiteralExpression
+	|	expr = arrayLiteral											#ArrayLiteralExpression
 	|	'this'														#ThisExpression
-	|	expression '.' functionStatement							#MemberMethodExpression
+	|	instance = expression '.' methodName = functionStatement	#MemberMethodExpression
     |   left = expression op = relationalOp right = expression		#RelationalExpression
     |   Not expr = expression										#NotExpression
     |   left = expression And right = expression					#AndExpression

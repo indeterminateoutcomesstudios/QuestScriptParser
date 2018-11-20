@@ -178,7 +178,7 @@ namespace QuestScript.Interpreter
                 foreach (var el in context._elements)
                 {
                     var value = el.Accept(this);
-                    list.Add(value);
+                    list.Add(GetValueOrLazyValue(value));
                 }
 
                 return list;
