@@ -74,9 +74,52 @@ namespace QuestScript.Interpreter
             var leftType = _environmentBuilder.TypeInferenceVisitor.Visit(context.left);
             var rightType = _environmentBuilder.TypeInferenceVisitor.Visit(context.right);
 
+            if (!TypeUtil.IsComparable(leftType) ||
+                !TypeUtil.IsComparable(rightType))
+            {
+                _environmentBuilder.Errors.Add(new InvalidOperandsException(context, context.op.GetText(), leftType,rightType));
+                return new Lazy<object>(() => null);
+            }
+
             return new Lazy<object>(() =>
             {
-                return false;
+              
+                var left = context.left.Accept(this).Value.GetValueOrLazyValue();
+                var right = context.right.Accept(this).Value.GetValueOrLazyValue();
+                
+                switch (context.op.GetText())
+                {
+                    case ">":
+                        return Cast((dynamic)left > (dynamic)right, ObjectType.Boolean);
+                    case ">=":
+                        return Cast((dynamic)left >= (dynamic)right, ObjectType.Boolean);
+                    case "<":
+                        return Cast((dynamic)left < (dynamic)right, ObjectType.Boolean);
+                    case "<=":
+                        return Cast((dynamic)left <= (dynamic)right, ObjectType.Boolean);
+                    case "=":
+                        return Cast((dynamic)left == (dynamic)right, ObjectType.Boolean);
+                    case "!=":
+                        return Cast((dynamic)left != (dynamic)right, ObjectType.Boolean);
+                        
+                }
+                return true;
+            });
+        }
+
+        public override Lazy<object> VisitNotExpression(QuestScriptParser.NotExpressionContext context)
+        {
+            var type = _environmentBuilder.TypeInferenceVisitor.Visit(context.expr);
+            if (type != ObjectType.Boolean)
+            {
+                _environmentBuilder.Errors.Add(new UnexpectedTypeException(context, ObjectType.Boolean, type, context.expr, "'not' operators are applicable only on boolean expressions."));
+                return new Lazy<object>(() => null);
+            }
+
+            return new Lazy<object>(() =>
+            {
+                var val = context.expr.Accept(this).Value.GetValueOrLazyValue();
+                return Cast(!(dynamic) val, ObjectType.Boolean);
             });
         }
 
@@ -133,10 +176,6 @@ namespace QuestScript.Interpreter
 
                 if (!TryConvertToNumber(rightValue, out var rightValueAsNumber))
                     return null;
-
-                object Cast(object val, ObjectType type) => 
-                    TypeUtil.TryConvert(val, type, out var castResult) ? 
-                        castResult : null;
 
                 switch (op.GetText())
                 {
@@ -273,5 +312,8 @@ namespace QuestScript.Interpreter
             return resultingValue;
         }
 
+        private object Cast(object val, ObjectType type) => 
+            TypeUtil.TryConvert(val, type, out var castResult) ? 
+                castResult : null;
     }
 }

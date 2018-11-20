@@ -90,6 +90,11 @@ namespace QuestScript.Interpreter.Helpers
                 case ObjectType.Object:
                     result = from;
                     return true;
+                case ObjectType.Boolean:
+                    if (!(from is bool))
+                        return false;
+                    result = (bool) from;
+                    return true;
             }
             
             //precaution, should never arrive here...
