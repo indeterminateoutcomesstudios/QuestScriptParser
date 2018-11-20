@@ -39,16 +39,43 @@ namespace QuestScript.Interpreter.Helpers
         public static bool CanConvert(ObjectType from, ObjectType to) => 
             _allowedImplicitCasting.TryGetValue(@from, out var conversions) && conversions.Contains(to);
 
+        //enough for our purposes
+        private static bool IsNumeric(this object obj)
+        {   
+            switch (Type.GetTypeCode(obj.GetType()))
+            {
+                case TypeCode.Byte:
+                case TypeCode.SByte:
+                case TypeCode.UInt16:
+                case TypeCode.UInt32:
+                case TypeCode.UInt64:
+                case TypeCode.Int16:
+                case TypeCode.Int32:
+                case TypeCode.Int64:
+                case TypeCode.Decimal:
+                case TypeCode.Double:
+                case TypeCode.Single:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
         public static bool TryConvert(object from, ObjectType toType, out object result)
         {
             result = null;
             switch (toType)
             {
                 case ObjectType.Integer:
+                    if (!from.IsNumeric()) //precaution
+                        return false;
+                    //numeric values in Quest can be only int and double
                     result = (int)(double)from;
                     return true;
                 case ObjectType.Double:
-                    result = (double)(int)from;
+                    if (!from.IsNumeric()) //precaution
+                        return false;
+                    result = (double)from;
                     return true;
                 case ObjectType.String:
                     result = from.ToString();

@@ -165,13 +165,13 @@ namespace QuestScript.Interpreter
 
         public override bool VisitOrExpression(QuestScriptParser.OrExpressionContext context)
         {
-            PrintBoolean(context.left, context.op.Text, context.right);
+            PrintBoolean(context.left, "or", context.right);
             return true;
         }
 
         public override bool VisitAndExpression(QuestScriptParser.AndExpressionContext context)
         {
-            PrintBoolean(context.left, context.op.Text, context.right);
+            PrintBoolean(context.left, "and", context.right);
             return true;
         }
 

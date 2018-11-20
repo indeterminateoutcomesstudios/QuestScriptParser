@@ -90,10 +90,6 @@ expression:
         rValue														#OperandExpression
     |   LeftParen expr = expression RightParen						#ParenthesizedExpression
     |   instance = expression '[' parameter = expression ']'		#IndexerExpression
-    |   Not expr = expression										#NotExpression
-    |   left = expression op = 'and' right = expression				#AndExpression
-    |   left = expression op = 'or' right = expression				#OrExpression
-    |   left = expression op = relationalOp right = expression		#RelationalExpression
     |   left = expression op = multiplicativeOp right = expression  #MultiplicativeExpression
     |   left = expression op = additiveOp right = expression		#AdditiveExpression
     |   op = unaryOp expr = expression								#PrefixUnaryExpression
@@ -101,6 +97,10 @@ expression:
 	|	arrayLiteral												#ArrayLiteralExpression
 	|	'this'														#ThisExpression
 	|	expression '.' functionStatement							#MemberMethodExpression
+    |   left = expression op = relationalOp right = expression		#RelationalExpression
+    |   Not expr = expression										#NotExpression
+    |   left = expression And right = expression					#AndExpression
+    |   left = expression Or right = expression						#OrExpression
     ;
 
 rValue:
@@ -114,6 +114,7 @@ lValue
         Identifier									#IdentifierOperand	 
     |   instance = lValue '.' member = Identifier   #MemberFieldOperand
     ;
+
 
 unaryOp:
         '+'     #UnaryPlusOp
@@ -129,11 +130,6 @@ relationalOp:
     |   '<='    #LesserOrEqualsOp
     |   '!='    #NotEqualsOp
     |   '='     #EqualsOp
-    ;
-
-logicalOp:
-        'and'   #AndOp
-    |   'or'    #OrOp
     ;
 
 multiplicativeOp:
@@ -165,7 +161,9 @@ RightBracket : ']' {nesting--;} ;
 PlusPlus: '++';
 MinusMinus: '--';
 Not : 'not';
- 
+And : 'and';
+Or : 'or';
+
 StringLiteral: '"' (AnyCharacterExceptSpecial | EscapeSequence)* '"';
 
 DoubleLiteral: Digit+ '.' Digit+;

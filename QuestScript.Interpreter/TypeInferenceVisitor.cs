@@ -55,6 +55,12 @@ namespace QuestScript.Interpreter
             if (leftType == rightType)
                 return leftType;
 
+            //we don't want to lose precision, thus any arithmetic expression with double operand becomes double too
+            if (TypeUtil.IsNumeric(rightType) &&
+                TypeUtil.IsNumeric(leftType) &&
+                (leftType == ObjectType.Double || rightType == ObjectType.Double))
+                return ObjectType.Double;
+
             if (TypeUtil.CanConvert(rightType, leftType))
                 return leftType;
 
@@ -65,6 +71,12 @@ namespace QuestScript.Interpreter
 
             return ObjectType.Unknown;
         }
+
+        public override ObjectType VisitPrefixUnaryExpression(QuestScriptParser.PrefixUnaryExpressionContext context) => 
+            context.expr.Accept(this);
+
+        public override ObjectType VisitPostfixUnaryExpression(QuestScriptParser.PostfixUnaryExpressionContext context) =>
+            context.expr.Accept(this);
 
         public override ObjectType VisitRelationalExpression(QuestScriptParser.RelationalExpressionContext context)
         {
@@ -80,12 +92,12 @@ namespace QuestScript.Interpreter
 
         public override ObjectType VisitOrExpression(QuestScriptParser.OrExpressionContext context)
         {
-            return VisitLogicalExpression(context, context.op.Text, context.left, context.right);
+            return VisitLogicalExpression(context, "or", context.left, context.right);
         }
 
         public override ObjectType VisitAndExpression(QuestScriptParser.AndExpressionContext context)
         {
-            return VisitLogicalExpression(context, context.op.Text, context.left, context.right);
+            return VisitLogicalExpression(context, "and", context.left, context.right);
         }
 
         private ObjectType VisitLogicalExpression(ParserRuleContext context, string op, ParserRuleContext left, ParserRuleContext right)
