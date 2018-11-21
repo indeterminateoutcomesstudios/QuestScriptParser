@@ -10,8 +10,9 @@ namespace QuestScript.Tryouts
     {
         static void Main(string[] args)
         {
+            //z = 
             var lexer = new QuestScriptLexer(new AntlrInputStream(@" 
-                z = [[1,2],[3,4.5],[5,6]]    
+                z = [ [[1,2],[3,4]] , [[1,2],[""ABC"",4],[5,6]] ]
                 x = not true
             "));
             var tokens = new CommonTokenStream(lexer);
