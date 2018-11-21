@@ -1,6 +1,6 @@
 ﻿namespace QuestScript.Parser
 {
-    partial class ASLXLexer
+    partial class QuestGameParser
     {
     }
 }

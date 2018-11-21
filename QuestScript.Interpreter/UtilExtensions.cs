@@ -14,6 +14,8 @@ namespace QuestScript.Interpreter
             LazyTypeAccessor = TypeAccessor.Create(typeof(Lazy<object>));
         }
 
+        public static string CleanTokenArtifacts(this string str) => str.Replace("\"", string.Empty);
+
         public static void EnsureKey<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key, Func<TValue> newValueFactory)
         {
             if (dict.ContainsKey(key) == false)

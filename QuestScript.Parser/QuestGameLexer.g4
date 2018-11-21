@@ -1,7 +1,5 @@
-lexer grammar ASLXLexer;
-
+lexer grammar QuestGameLexer;
 /*
- taken from https://github.com/antlr/grammars-v4/blob/master/xml/XMLLexer.g4 and made some changes
  [The "BSD licence"]
  Copyright (c) 2013 Terence Parr
  All rights reserved.
@@ -31,7 +29,6 @@ lexer grammar ASLXLexer;
 
 /** XML lexer derived from ANTLR v4 ref guide book example */
 
-
 // Default "mode": Everything OUTSIDE of a tag
 COMMENT     :   '<!--' .*? '-->' ;
 CDATA       :   '<![CDATA[' .*? ']]>' ;
@@ -45,9 +42,9 @@ CharRef     :   '&#' DIGIT+ ';'
             ;
 SEA_WS      :   (' '|'\t'|'\r'? '\n')+ ;
 
-OPEN        :   '<'								      -> pushMode(INSIDE) ;
-ASLDecOpen :   '<asl' 'version' '=' '"'DIGIT*'"' S   -> pushMode(INSIDE) ;
-SPECIAL_OPEN:   '<?' Name							  -> more, pushMode(PROC_INSTR) ;
+OPEN        :   '<'                     -> pushMode(INSIDE) ;
+XMLDeclOpen :   '<?xml' S               -> pushMode(INSIDE) ;
+SPECIAL_OPEN:   '<?' Name               -> more, pushMode(PROC_INSTR) ;
 
 TEXT        :   ~[<&]+ ;        // match any 16 bit char other than < and &
 

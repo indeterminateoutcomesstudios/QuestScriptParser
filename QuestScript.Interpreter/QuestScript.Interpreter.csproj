@@ -201,6 +201,7 @@
     <Compile Include="Exceptions\FailedToInferTypeException.cs" />
     <Compile Include="Exceptions\FailedValueInterpretation.cs" />
     <Compile Include="Exceptions\InvalidArrayLiteralException.cs" />
+    <Compile Include="GameObjectResolverVisitor.cs" />
     <Compile Include="Helpers\CollectorTokenSource.cs" />
     <Compile Include="Helpers\TypeUtil.cs" />
     <Compile Include="InterpreterElements\Variable.cs" />

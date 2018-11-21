@@ -121,7 +121,7 @@ namespace QuestScript.Interpreter
                 return itemType;
             }
 
-            //TODO: add here support for dictionaries (object attributes and function parameter may be of dictionary type...)
+            //TODO:Add here support for dictionaries (object attributes and function parameter may be of dictionary type)
             return ObjectType.Unknown;
         }
 

@@ -1,4 +1,4 @@
-parser grammar ASLXParser;
+parser grammar QuestGameParser;
 
 /*
  taken from https://github.com/antlr/grammars-v4/blob/master/xml/XMLParser.g4 and made some changes
@@ -31,24 +31,26 @@ parser grammar ASLXParser;
 
 /** XML parser derived from ANTLR v4 ref guide book example */
 
-options { tokenVocab=ASLXLexer; }
+options { tokenVocab=QuestGameLexer; }
 
-gameRoot    :   prolog element* EOF;
+document    :   prolog? misc* element misc* EOF;
 
-prolog      :   ASLDecOpen attribute* SPECIAL_CLOSE ;
+prolog      :   XMLDeclOpen attribute* SPECIAL_CLOSE ;
 
-content     :   contentValue = chardata?
-                (childElementNames += element childContentValues += chardata?)* ;
+content     :   chardata?
+                ((element | reference | CDATA | PI | COMMENT) chardata?)* ;
 
-element     :   '<' elementName = Name attributes += attribute* '>' contentValue = content '<' '/' Name '>'
-            |   '<' elementName = Name attributes += attribute* '/>'
+element     :   '<' ElementName = Name attribute* '>' content '<' '/' Name '>'
+            |   '<' ElementName = Name attribute* '/>'
             ;
 
-attribute   :   NameToken = Name '=' ValueToken = STRING ; // Our STRING is AttValue in spec
+reference   :   EntityRef | CharRef ;
+
+attribute   :   Key = Name '=' Value = STRING ; // Our STRING is AttValue in spec
 
 /** ``All text that is not markup constitutes the character data of
  *  the document.''
  */
 chardata    :   TEXT | SEA_WS ;
 
-misc        :   COMMENT | PI | SEA_WS ;
+misc : COMMENT | PI | SEA_WS ;
