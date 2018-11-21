@@ -1,4 +1,7 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using Antlr4.Runtime;
 using QuestScript.Interpreter.Exceptions;
 using QuestScript.Interpreter.Helpers;
@@ -134,18 +137,128 @@ namespace QuestScript.Interpreter
             if (context.expr._elements.Count <= 0) 
                 return ObjectType.List;
 
-            var firstItemType = context.expr._elements[0].Accept(this);
-            for (int i = 1; i < context.expr._elements.Count; i++)
+            var result = RecursiveVerifyEmbeddedArrayTypes(context);
+            if (!result.isOk)
             {
-                var itemType = context.expr._elements[i].Accept(this);
-                if (itemType != firstItemType)
+                _environmentBuilder.Errors.Add(new InvalidArrayLiteralException(context,
+                    $"Expected all values in the array ('{context.GetText()}') to be of type '{result.requiredType}', but found an item ({result.context.GetText()}) of which has value(s) type '{result.actualType}'"));
+                return ObjectType.Unknown;
+            }
+
+            return ObjectType.List;        
+        }
+
+        private ObjectType RecursiveGetTypeOf(QuestScriptParser.ArrayLiteralExpressionContext context)
+        {
+            if (context.expr._elements.Count <= 0) //precaution, should never be true..
+                return ObjectType.Unknown;
+
+            var firstItem = context.expr._elements[0];
+
+            if (firstItem is QuestScriptParser.ArrayLiteralExpressionContext literalArray)
+                return RecursiveGetTypeOf(literalArray);
+
+            var embeddedArray = firstItem.FindDescendantOfType<QuestScriptParser.ArrayLiteralExpressionContext>();            
+            if (embeddedArray != null)
+                return RecursiveGetTypeOf(embeddedArray);
+
+            var type = firstItem.Accept(this);
+            //just to make sure, perhaps we have a method or a function that evaluates to list?
+            if (type == ObjectType.List)
+            {
+                //so, lets try to evaluate it, perhaps we have
+                //something dynamic like function result to infer the type?
+                //TODO : verify this branch of code works when functions/methods evaluation is implemented
+                var value = _environmentBuilder.ValueResolverVisitor.Visit(firstItem).Value.GetValueOrLazyValue();
+
+                ObjectType RecordFailureToInferAndReturnUnknownType(QuestScriptParser.ArrayLiteralExpressionContext arrayLiteralExpressionContext, QuestScriptParser.ExpressionContext expressionContext)
                 {
-                    _environmentBuilder.Errors.Add(new InvalidArrayLiteralException(context,
-                        $"Expected all values in the array to be of type '{firstItemType}', but found an item of type '{itemType}'."));
+                    _environmentBuilder.Errors.Add(new FailedToInferTypeException(arrayLiteralExpressionContext, expressionContext,
+                        $"First item of {arrayLiteralExpressionContext.GetText()} seems to be an embedded array (item is '{expressionContext.GetText()}'), but failed to infer the type of its first item. Something is wrong here..."));
                     return ObjectType.Unknown;
                 }
+
+                if (value is ArrayList array)
+                {
+                    object GetFirstItemRecursive(object arrayOrValue)
+                    {
+                        while (true)
+                        {
+                            if (!(arrayOrValue is IEnumerable enumerable)) 
+                                return arrayOrValue;
+
+                            var enumerator = enumerable.GetEnumerator();
+                            enumerator.MoveNext();
+                            arrayOrValue = enumerator.Current;
+                        }
+                    }
+
+                    var firstArrayItem = GetFirstItemRecursive(array);
+                    return !TypeUtil.TryConvertType(firstArrayItem.GetType(),out var firstItemType) ? 
+                        RecordFailureToInferAndReturnUnknownType(context, firstItem) : firstItemType;
+                }
+                else
+                {
+                    RecordFailureToInferAndReturnUnknownType(context, firstItem);
+                }
             }
-            return ObjectType.List;        
+
+            return type;
+        }
+
+        private (bool isOk, ObjectType actualType, ObjectType requiredType, ParserRuleContext context) RecursiveVerifyEmbeddedArrayTypes(
+            QuestScriptParser.ArrayLiteralExpressionContext context)
+        {
+            var firstItemType = RecursiveGetTypeOf(context);
+            var result = RecursiveVerifyEmbeddedArrayTypes(context, firstItemType);
+            return (result.isOk, result.actualType, firstItemType, result.context);
+        }
+
+        private (bool isOk, ObjectType actualType, ParserRuleContext context) RecursiveVerifyEmbeddedArrayTypes(QuestScriptParser.ArrayLiteralExpressionContext context, ObjectType requiredType)
+        {
+            var firstItemType = RecursiveGetTypeOf(context);
+            if (firstItemType != requiredType)
+                return (false, firstItemType, context);
+
+            var firstItem = context.expr._elements[0];
+            var embeddedArray = firstItem.FindDescendantOfType<QuestScriptParser.ArrayLiteralExpressionContext>();
+            if (embeddedArray == null && !(firstItem is QuestScriptParser.ArrayLiteralExpressionContext))
+            {
+                //assume we have only primitives
+                for (var i = 1; i < context.expr._elements.Count; i++)
+                {
+                    var item = context.expr._elements[i];
+
+                    //if the first item wasn't an embedded array, disallow them on other items
+                    if (item.HasDescendantOfType<QuestScriptParser.ArrayLiteralExpressionContext>())
+                    {
+                        return (false, ObjectType.List, item);
+                    }
+
+                    var itemType = item.Accept(this);
+                    if (itemType != firstItemType)
+                        return (false, itemType, item);
+                }
+            }
+            else
+            {
+                for (var i = 1; i < context.expr._elements.Count; i++)
+                {
+                    var item = context.expr._elements[i];
+                    //if the first item was an embedded array, enforce their existence on other items
+                    if (!item.HasDescendantOfType<QuestScriptParser.ArrayLiteralExpressionContext>())
+                    {
+                        return (false, item.Accept(this), item);
+                    }
+
+                    var embedded = item.FindDescendantOfType<QuestScriptParser.ArrayLiteralExpressionContext>() 
+                                        ?? item as QuestScriptParser.ArrayLiteralExpressionContext;
+                    var result = RecursiveVerifyEmbeddedArrayTypes(embedded,requiredType);
+                    if (!result.isOk)
+                        return (false,result.actualType,result.context);
+                }
+            }   
+            return (true, firstItemType, context);
         }
 
         public override ObjectType VisitPostfixUnaryExpression(QuestScriptParser.PostfixUnaryExpressionContext context) =>

@@ -187,6 +187,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ASLXLexer.g4.cs">
+      <DependentUpon>ASLXLexer.g4</DependentUpon>
+    </Compile>
+    <Compile Include="ASLXParser.g4.cs">
+      <DependentUpon>ASLXParser.g4</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QuestScript.g4.lexer.cs">
       <DependentUpon>QuestScript.g4</DependentUpon>
@@ -204,6 +210,14 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <Antlr4 Include="ASLXLexer.g4">
+      <Generator>MSBuild:Compile</Generator>
+      <CustomToolNamespace>QuestScript.Parser</CustomToolNamespace>
+    </Antlr4>
+    <Antlr4 Include="ASLXParser.g4">
+      <Generator>MSBuild:Compile</Generator>
+      <CustomToolNamespace>QuestScript.Parser</CustomToolNamespace>
+    </Antlr4>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
