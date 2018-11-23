@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using FastMember;
 
-namespace QuestScript.Interpreter
+namespace QuestScript.Interpreter.Extensions
 {
     public static class UtilExtensions
     {

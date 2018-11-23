@@ -198,7 +198,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EnvironmentTree.cs" />
-    <Compile Include="EnvironmentExtensions.cs" />
+    <Compile Include="Extensions\EnvironmentExtensions.cs" />
     <Compile Include="Exceptions\DivisionByZeroException.cs" />
     <Compile Include="Exceptions\FailedToInferTypeException.cs" />
     <Compile Include="Exceptions\FailedValueInterpretation.cs" />
@@ -209,8 +209,8 @@
     <Compile Include="Helpers\TypeUtil.cs" />
     <Compile Include="InterpreterElements\Variable.cs" />
     <Compile Include="InterpreterElements\Environment.cs" />
-    <Compile Include="ParserRuleContextUtils.cs" />
-    <Compile Include="QuestGameParserExtensions.cs" />
+    <Compile Include="Helpers\ParserRuleContextUtils.cs" />
+    <Compile Include="Extensions\QuestGameParserExtensions.cs" />
     <Compile Include="Script.cs" />
     <Compile Include="ScriptElements\IFunction.cs" />
     <Compile Include="ScriptElements\IInstance.cs" />
@@ -222,7 +222,7 @@
     <Compile Include="ScriptElements\IObjectInstance.cs" />
     <Compile Include="ScriptElements\ScriptFunction.cs" />
     <Compile Include="TypeInferenceVisitor.cs" />
-    <Compile Include="UtilExtensions.cs" />
+    <Compile Include="Extensions\UtilExtensions.cs" />
     <Compile Include="Exceptions\BaseInterpreterException.cs" />
     <Compile Include="Exceptions\ConflictingVariableName.cs" />
     <Compile Include="Exceptions\InvalidConditionException.cs" />

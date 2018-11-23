@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using QuestScript.Parser;
 
-namespace QuestScript.Interpreter
+namespace QuestScript.Interpreter.Extensions
 {
     public static class QuestGameParserExtensions
     {

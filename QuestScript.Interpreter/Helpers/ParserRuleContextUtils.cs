@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 using Antlr4.Runtime;
 using QuestScript.Parser;
 
-namespace QuestScript.Interpreter
+namespace QuestScript.Interpreter.Helpers
 {
     public static class ParserRuleContextUtils
     {

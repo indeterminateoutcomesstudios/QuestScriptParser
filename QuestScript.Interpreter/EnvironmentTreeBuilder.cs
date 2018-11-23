@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using QuestScript.Interpreter.Exceptions;
+using QuestScript.Interpreter.Extensions;
 using QuestScript.Interpreter.Helpers;
 using QuestScript.Interpreter.InterpreterElements;
 using QuestScript.Interpreter.ScriptElements;

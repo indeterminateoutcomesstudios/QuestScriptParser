@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Antlr4.Runtime;
+using QuestScript.Interpreter.Extensions;
 using QuestScript.Interpreter.Helpers;
 using QuestScript.Interpreter.ScriptElements;
 using QuestScript.Parser;

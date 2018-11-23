@@ -2,7 +2,7 @@
 using System.Linq;
 using QuestScript.Interpreter.InterpreterElements;
 
-namespace QuestScript.Interpreter
+namespace QuestScript.Interpreter.Extensions
 {
     public static class EnvironmentExtensions
     {
