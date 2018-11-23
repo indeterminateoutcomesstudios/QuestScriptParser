@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using Antlr4.Runtime;
 using QuestScript.Interpreter;
 using QuestScript.Parser;
@@ -10,8 +9,8 @@ namespace QuestScript.Tryouts
     {
         static void Main(string[] args)
         {
-            var questGameLexer = new QuestGameLexer(new AntlrFileStream(@"C:\Users\Admin\Documents\Quest Games\BasicNeedsLib\TestGame.aslx"));
-
+            
+            var questGameLexer = new QuestGameLexer(new AntlrFileStream(@"C:\Users\orev.HRHINOS\Documents\Quest Games\TestGame\TestGame.aslx"));
             var questGameParser = new QuestGameParser(new CommonTokenStream(questGameLexer));
             
             var questGameTree = questGameParser.document();
