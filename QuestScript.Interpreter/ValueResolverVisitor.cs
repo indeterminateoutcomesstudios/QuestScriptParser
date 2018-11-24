@@ -100,6 +100,7 @@ namespace QuestScript.Interpreter
                         return Cast((dynamic)left <= (dynamic)right, ObjectType.Boolean);
                     case "=":
                         return Cast((dynamic)left == (dynamic)right, ObjectType.Boolean);
+                    case "<>": //alternate "not equals"
                     case "!=":
                         return Cast((dynamic)left != (dynamic)right, ObjectType.Boolean);
                         

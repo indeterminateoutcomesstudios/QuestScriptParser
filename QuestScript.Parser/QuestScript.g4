@@ -17,7 +17,6 @@ statement
     |   scriptAssignmentStatement
     |   firsttimeStatement //special case of syntax
     |   iterationStatement
-    |   continueStatement
     |   breakStatement
     |   returnStatement
 	|	switchCaseStatement
@@ -40,9 +39,9 @@ continueStatement: Continue;
 breakStatement: Break;
 
 iterationStatement
-    : 'do' code = codeBlockStatement 'while' LeftParen condition = expression RightParen   #DoStatement
-    | 'while' LeftParen condition = expression RightParen code = statement		           #WhileStatement
-    | 'foreach' LeftParen iterationVariable = Identifier ':'
+    : 
+      'while' LeftParen condition = expression RightParen code = statement		           #WhileStatement
+    | 'foreach' LeftParen iterationVariable = Identifier ','
 				    enumerationVariable = expression RightParen
 				        code = statement                             #ForEachStatement
     | 'for' LeftParen iterationVariable = Identifier ','
@@ -73,7 +72,7 @@ specialFunctionStatement: functionName = SpecialFunctionName (LeftParen argument
 
 firsttimeStatement: 'firsttime' firstTimeScript = codeBlockStatement ('otherwise' otherwiseScript = codeBlockStatement)?;
 
-functionStatement: functionName = Identifier LeftParen argumentsList RightParen;
+functionStatement: functionName = Identifier (LeftParen argumentsList RightParen)?;
 
 assignmentStatement: LVal = lValue '=' RVal = expression;
 
@@ -93,7 +92,7 @@ expression:
     |   expr = expression op = (PlusPlus|MinusMinus)				#PostfixUnaryExpression
 	|	expr = arrayLiteral											#ArrayLiteralExpression
 	|	'this'														#ThisExpression
-	|	instance = expression '.' methodName = functionStatement	#MemberMethodExpression
+	|	instance = expression '.' method = functionStatement		#MemberMethodExpression
     |   left = expression op = relationalOp right = expression		#RelationalExpression
     |   Not expr = expression										#NotExpression
     |   left = expression And right = expression					#AndExpression
@@ -119,6 +118,7 @@ relationalOp:
     |   '<'     #LesserOp
     |   '<='    #LesserOrEqualsOp
     |   '!='    #NotEqualsOp
+    |   '<>'    #AlternateNotEqualsOp
     |   '='     #EqualsOp
     ;
 
@@ -163,8 +163,7 @@ NullLiteral: 'null';
 BooleanLiteral: 'true' | 'false';
 
 Keyword:
-        'do'
-    |   'finish'
+        'finish'
     |   'firsttime'
     |   'for'
     |   'foreach'
@@ -202,7 +201,7 @@ SpecialFunctionName:
     |   'SetTurnTimeoutID'
     ;
 
-Continue: 'continue';
+//Continue: 'continue';
 Break: 'break';
 
 Identifier: (Letter | '_') (Letter | Digit | '_')*;
@@ -212,6 +211,9 @@ fragment EscapeSequence : '\\' ['"?abfnrtv\\];
 fragment Letter : [A-Za-z];
 fragment NonZeroDigit: [1-9];
 fragment Digit: [0-9];
+
+CDataBegin: '<![CDATA[' -> skip;
+CDataEnd: ']]>' -> skip;
 
 Whitespace: (' '|'\t') -> skip;
 Comment: '/*' .*? '*/' -> channel(HIDDEN);

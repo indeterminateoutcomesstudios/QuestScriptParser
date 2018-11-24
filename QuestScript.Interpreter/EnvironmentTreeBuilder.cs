@@ -25,7 +25,7 @@ namespace QuestScript.Interpreter
 
         public HashSet<BaseInterpreterException> Errors { get; } = new HashSet<BaseInterpreterException>();
 
-        private Dictionary<ParserRuleContext, Environment> _environmentsByContext = new Dictionary<ParserRuleContext, Environment>();
+        private readonly Dictionary<ParserRuleContext, Environment> _environmentsByContext = new Dictionary<ParserRuleContext, Environment>();
         private EnvironmentTree _environmentTree;
 
         public EnvironmentTreeBuilder()
