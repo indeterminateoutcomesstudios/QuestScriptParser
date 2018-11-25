@@ -19,14 +19,18 @@ namespace QuestScript.Interpreter.ScriptElements
 
         [AlternativeName("int")]
         Integer,
-
         Double,
         String,
         Object,
         Script,
         Boolean,
+        ObjectList,
+        StringList,
         List,
         Dictionary,
+        StringDictionary,
+        ObjectDictionary,
+        ScriptDictionary,
         Void,
         Null
     }

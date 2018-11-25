@@ -13,18 +13,18 @@ namespace QuestScript.Interpreter
 {
     public class TypeInferenceVisitor : QuestScriptBaseVisitor<ObjectType>
     {
-        private readonly EnvironmentTreeBuilder _environmentBuilder;
+        private readonly ScriptEnvironmentBuilder _scriptEnvironmentBuilder;
 
-        public TypeInferenceVisitor(EnvironmentTreeBuilder environmentBuilder)
+        public TypeInferenceVisitor(ScriptEnvironmentBuilder scriptEnvironmentBuilder)
         {
-            _environmentBuilder = environmentBuilder;
+            _scriptEnvironmentBuilder = scriptEnvironmentBuilder;
         }
 
         public override ObjectType VisitIdentifierOperand(QuestScriptParser.IdentifierOperandContext context)
         {
             //this is either an object or a variable identifier.
             var identifier = context.GetText();
-            var variable = _environmentBuilder.GetVariableFromCurrentEnvironment(identifier);
+            var variable = _scriptEnvironmentBuilder.GetVariableFromCurrentEnvironment(identifier);
             
             if (variable != null) //so this is variable...
             {
@@ -72,7 +72,7 @@ namespace QuestScript.Interpreter
             if (TypeUtil.CanConvert(leftType, rightType))
                 return rightType;
 
-            _environmentBuilder.Errors.Add(new InvalidOperandsException(context,op.GetText(), leftType, rightType));
+            _scriptEnvironmentBuilder.Errors.Add(new InvalidOperandsException(context,op.GetText(), leftType, rightType));
 
             return ObjectType.Unknown;
         }
@@ -87,7 +87,7 @@ namespace QuestScript.Interpreter
                 var parameterType = context.parameter.Accept(this);
                 if (!TypeUtil.IsNumeric(parameterType))
                 {
-                    _environmentBuilder.Errors.Add(
+                    _scriptEnvironmentBuilder.Errors.Add(
                         new UnexpectedTypeException(
                             context,ObjectType.Integer,
                             parameterType,
@@ -98,7 +98,7 @@ namespace QuestScript.Interpreter
 
                 //at this point the expression we are accessing through indexer SHOULD be evaluable,
                 //so we are simply resolving it's value sooner
-                var value =  _environmentBuilder.ValueResolverVisitor.Visit(context.instance).Value.GetValueOrLazyValue();
+                var value =  _scriptEnvironmentBuilder.ValueResolverVisitor.Visit(context.instance).Value.GetValueOrLazyValue();
                 var valueAsArray = value as ArrayList;
                 if (valueAsArray == null) //precaution, shouldn't happen
                 {
@@ -107,7 +107,7 @@ namespace QuestScript.Interpreter
                         resultingType = ObjectType.Unknown;
                     }
 
-                    _environmentBuilder.Errors.Add(
+                    _scriptEnvironmentBuilder.Errors.Add(
                         new UnexpectedTypeException(
                             context,ObjectType.List,
                             resultingType,
@@ -141,7 +141,7 @@ namespace QuestScript.Interpreter
             var result = RecursiveVerifyEmbeddedArrayTypes(context);
             if (!result.isOk)
             {
-                _environmentBuilder.Errors.Add(new InvalidArrayLiteralException(context,
+                _scriptEnvironmentBuilder.Errors.Add(new InvalidArrayLiteralException(context,
                     $"Expected all values in the array ('{context.GetText()}') to be of type '{result.requiredType}', but found an item ({result.context.GetText()}) of which has value(s) of type '{result.actualType}'"));
                 return ObjectType.Unknown;
             }
@@ -170,11 +170,11 @@ namespace QuestScript.Interpreter
                 //so, lets try to evaluate it, perhaps we have
                 //something like function result to infer the type?
                 //TODO : verify this branch of code works when functions/methods evaluation is implemented
-                var value = _environmentBuilder.ValueResolverVisitor.Visit(firstItem).Value.GetValueOrLazyValue();
+                var value = _scriptEnvironmentBuilder.ValueResolverVisitor.Visit(firstItem).Value.GetValueOrLazyValue();
 
                 ObjectType RecordFailureToInferAndReturnUnknownType(QuestScriptParser.ArrayLiteralExpressionContext arrayLiteralExpressionContext, QuestScriptParser.ExpressionContext expressionContext)
                 {
-                    _environmentBuilder.Errors.Add(new FailedToInferTypeException(arrayLiteralExpressionContext, expressionContext,
+                    _scriptEnvironmentBuilder.Errors.Add(new FailedToInferTypeException(arrayLiteralExpressionContext, expressionContext,
                         $"First item of {arrayLiteralExpressionContext.GetText()} seems to be an embedded array (item is '{expressionContext.GetText()}'), but failed to infer the type of its first item. Something is wrong here..."));
                     return ObjectType.Unknown;
                 }
@@ -261,7 +261,7 @@ namespace QuestScript.Interpreter
             if (TypeUtil.IsComparable(leftType) && TypeUtil.IsComparable(rightType)) 
                 return ObjectType.Boolean; //comparison results are boolean of course...
 
-            _environmentBuilder.Errors.Add(new InvalidOperandsException(context,context.op.GetText(),leftType,rightType));
+            _scriptEnvironmentBuilder.Errors.Add(new InvalidOperandsException(context,context.op.GetText(),leftType,rightType));
             return ObjectType.Unknown;
         }
 
@@ -286,7 +286,7 @@ namespace QuestScript.Interpreter
                 return ObjectType.Boolean;
             }
 
-            _environmentBuilder.Errors.Add(new InvalidOperandsException(context,op,leftType,rightType));
+            _scriptEnvironmentBuilder.Errors.Add(new InvalidOperandsException(context,op,leftType,rightType));
             return ObjectType.Unknown;
         }
 

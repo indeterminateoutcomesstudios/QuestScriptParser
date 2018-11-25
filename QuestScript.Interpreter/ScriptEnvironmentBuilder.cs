@@ -13,7 +13,7 @@ using Environment = QuestScript.Interpreter.InterpreterElements.Environment;
 
 namespace QuestScript.Interpreter
 {
-    public sealed class EnvironmentTreeBuilder : QuestScriptBaseVisitor<bool>
+    public sealed class ScriptEnvironmentBuilder : QuestScriptBaseVisitor<bool>
     {
         private Environment _current;
         private readonly TypeInferenceVisitor _typeInferenceVisitor;
@@ -26,16 +26,16 @@ namespace QuestScript.Interpreter
         public HashSet<BaseInterpreterException> Errors { get; } = new HashSet<BaseInterpreterException>();
 
         private readonly Dictionary<ParserRuleContext, Environment> _environmentsByContext = new Dictionary<ParserRuleContext, Environment>();
-        private EnvironmentTree _environmentTree;
+        private ScriptEnvironment _scriptEnvironment;
 
-        public EnvironmentTreeBuilder()
+        public ScriptEnvironmentBuilder()
         {
             _typeInferenceVisitor = new TypeInferenceVisitor(this);
             _valueResolverVisitor = new ValueResolverVisitor(this);
         }
 
-        public EnvironmentTree Output => 
-            _environmentTree ?? (_environmentTree = new EnvironmentTree(_root, _environmentsByContext));
+        public ScriptEnvironment Output => 
+            _scriptEnvironment ?? (_scriptEnvironment = new ScriptEnvironment(_root, _environmentsByContext));
 
         public override bool Visit(IParseTree tree)
         {

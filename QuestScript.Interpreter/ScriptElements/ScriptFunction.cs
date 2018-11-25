@@ -13,11 +13,11 @@ namespace QuestScript.Interpreter.ScriptElements
 
         public IReadOnlyCollection<string> Parameters { get; }
 
-        public EnvironmentTree Implementation { get; }
+        public ScriptEnvironment Implementation { get; }
 
         public HashSet<BaseInterpreterException> Errors { get; } = new HashSet<BaseInterpreterException>();
 
-        public ScriptFunction(string name, IReadOnlyCollection<string> parameterTypes, ObjectType returnType, EnvironmentTree implementation)
+        public ScriptFunction(string name, IReadOnlyCollection<string> parameterTypes, ObjectType returnType, ScriptEnvironment implementation)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Parameters = parameterTypes ?? throw new ArgumentNullException(nameof(parameterTypes));

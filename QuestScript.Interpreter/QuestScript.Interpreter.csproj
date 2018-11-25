@@ -198,7 +198,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="EnvironmentTree.cs" />
+    <Compile Include="ScriptEnvironment.cs" />
     <Compile Include="Extensions\EnvironmentExtensions.cs" />
     <Compile Include="Exceptions\DivisionByZeroException.cs" />
     <Compile Include="Exceptions\FailedToInferTypeException.cs" />
@@ -230,7 +230,7 @@
     <Compile Include="Exceptions\InvalidOperandsException.cs" />
     <Compile Include="Exceptions\UnexpectedTypeException.cs" />
     <Compile Include="Exceptions\UnresolvedVariableException.cs" />
-    <Compile Include="EnvironmentTreeBuilder.cs" />
+    <Compile Include="ScriptEnvironmentBuilder.cs" />
     <Compile Include="ValueResolverVisitor.cs" />
   </ItemGroup>
   <ItemGroup>

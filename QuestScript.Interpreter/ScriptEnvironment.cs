@@ -12,7 +12,7 @@ using Environment = QuestScript.Interpreter.InterpreterElements.Environment;
 
 namespace QuestScript.Interpreter
 {
-    public sealed class EnvironmentTree
+    public sealed class ScriptEnvironment
     {
         private static readonly Type StatementContextType = typeof(QuestScriptParser.StatementContext);
 
@@ -20,7 +20,7 @@ namespace QuestScript.Interpreter
 
         public Environment Root { get; }
 
-        internal EnvironmentTree(Environment root, Dictionary<ParserRuleContext, Environment> environmentsByContext)
+        internal ScriptEnvironment(Environment root, Dictionary<ParserRuleContext, Environment> environmentsByContext)
         {
             Root = root;
             _environmentsByContext = environmentsByContext;

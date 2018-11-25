@@ -29,6 +29,9 @@ namespace QuestScript.Interpreter
 
         private static readonly string QuestCoreLibrariesPath;
         private static readonly string QuestLanguageLibrariesPath;
+
+        private readonly List<FunctionDefinition> _functionDefinitions = new List<FunctionDefinition>();
+
         public HashSet<IFunction> Functions { get; } = new HashSet<IFunction>();
         public HashSet<string> References { get; } = new HashSet<string>();
 
@@ -106,9 +109,7 @@ namespace QuestScript.Interpreter
 
         private void MergeWith(GameObjectResolverVisitor otherVisitor)
         {
-            foreach (var func in otherVisitor.Functions)
-                Functions.Add(func);
-
+            _functionDefinitions.AddRange(otherVisitor._functionDefinitions);
             //TODO: add here other stuff that the visitor parses
         }
 
@@ -127,7 +128,7 @@ namespace QuestScript.Interpreter
                 parameters.AddRange(parameterList.Value.Split(','));
             }
 
-            var returnType = ObjectType.Unknown;
+            var returnType = ObjectType.Void;
 
             if (context.TryGetAttributeByName("type", out var returnTypeAttribute))
             {
@@ -136,23 +137,13 @@ namespace QuestScript.Interpreter
                     : ObjectType.Unknown;
             }
 
-            var sourceCodeStream = new AntlrInputStream(Regex.Unescape(functionImplementation).Replace("\r\n",string.Empty));
-            ScriptLexer.SetInputStream(sourceCodeStream);
-            ScriptParser.SetInputStream(new CommonTokenStream(ScriptLexer));
-
-            var parsedFunctionImplementation = ScriptParser.script();
-            var builder = new EnvironmentTreeBuilder();
-            builder.Visit(parsedFunctionImplementation);
-            if (builder.Errors.Count > 0)
+            _functionDefinitions.Add(new FunctionDefinition
             {
-                Debugger.Break();
-            }
-            var func = new ScriptFunction(functionName, parameters, returnType, builder.Output);
-            foreach (var error in builder.Errors)
-            {
-                func.Errors.Add(error);
-            }
-            Functions.Add(func);
+                Name = functionName,
+                Parameters = parameters,
+                Implementation = Regex.Unescape(functionImplementation),
+                ReturnType = returnType
+            });
         }
 
         private void VisitInclude(QuestGameParser.ElementContext context)
@@ -171,6 +162,19 @@ namespace QuestScript.Interpreter
             throw new InvalidDataException(
                 $"Found <{context.ElementName.Text}> element, but didn't find '{attribute}' attribute. This should not happen, and it is likely this ASLX game file is corrupted. The element I found is : " +
                 context.GetText());
+        }
+
+        private class FunctionDefinition
+        {
+            public string Name;
+            public List<string> Parameters;
+            public string Implementation;
+            public ObjectType ReturnType;
+
+            public override string ToString()
+            {
+                return $"{nameof(Name)}: {Name}, {nameof(Parameters)}: {string.Join(",",Parameters)}, {nameof(ReturnType)}: {ReturnType}";
+            }
         }
     }
 }

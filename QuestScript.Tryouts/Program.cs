@@ -37,7 +37,7 @@ namespace QuestScript.Tryouts
             //            var tokens = new CommonTokenStream(lexer);
             //            var parser = new QuestScriptParser(tokens);
 
-            //            var environmentTreeBuilder = new EnvironmentTreeBuilder();
+            //            var environmentTreeBuilder = new ScriptEnvironmentBuilder();
             //            var scriptTree = parser.script();
             //            environmentTreeBuilder.Visit(scriptTree);
 

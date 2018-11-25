@@ -14,20 +14,20 @@ namespace QuestScript.Interpreter
     //resolver for values of object attributes and local variables
     public class ValueResolverVisitor : QuestScriptBaseVisitor<Lazy<object>>
     {
-        private readonly EnvironmentTreeBuilder _environmentBuilder;       
+        private readonly ScriptEnvironmentBuilder _scriptEnvironmentBuilder;       
 
-        public ValueResolverVisitor(EnvironmentTreeBuilder environmentBuilder)
+        public ValueResolverVisitor(ScriptEnvironmentBuilder scriptEnvironmentBuilder)
         {
-            _environmentBuilder = environmentBuilder;
+            _scriptEnvironmentBuilder = scriptEnvironmentBuilder;
         }
 
-        private HashSet<BaseInterpreterException> Errors => _environmentBuilder.Errors;
+        private HashSet<BaseInterpreterException> Errors => _scriptEnvironmentBuilder.Errors;
 
         public override Lazy<object> VisitIdentifierOperand(QuestScriptParser.IdentifierOperandContext context)
         {
             return new Lazy<object>(() =>
             {
-                var variable = _environmentBuilder.GetVariableFromCurrentEnvironment(context.GetText());
+                var variable = _scriptEnvironmentBuilder.GetVariableFromCurrentEnvironment(context.GetText());
                 return variable != null ? variable.Value : null;
             });
         }
@@ -35,13 +35,13 @@ namespace QuestScript.Interpreter
         public override Lazy<object> VisitIndexerExpression(QuestScriptParser.IndexerExpressionContext context)
         {
             //this does necessary type checks.            
-            var valueType = _environmentBuilder.TypeInferenceVisitor.Visit(context);
+            var valueType = _scriptEnvironmentBuilder.TypeInferenceVisitor.Visit(context);
             if (valueType == ObjectType.Unknown) //failed at one or more type checks
             {
                 return new Lazy<object>(() => null);
             }
 
-            var instanceType = _environmentBuilder.TypeInferenceVisitor.Visit(context.instance);
+            var instanceType = _scriptEnvironmentBuilder.TypeInferenceVisitor.Visit(context.instance);
             if (instanceType == ObjectType.List)
             {
                 return new Lazy<object>(() =>
@@ -58,7 +58,7 @@ namespace QuestScript.Interpreter
                 //TODO : add support for dictionaries
             }
 
-            _environmentBuilder.Errors.Add(new UnexpectedTypeException(context,ObjectType.List,instanceType,context.instance,$"Indexer expression must be applied to either list or a dictionary, and this was '{instanceType}'."));
+            _scriptEnvironmentBuilder.Errors.Add(new UnexpectedTypeException(context,ObjectType.List,instanceType,context.instance,$"Indexer expression must be applied to either list or a dictionary, and this was '{instanceType}'."));
             return base.VisitIndexerExpression(context);
         }
 
@@ -72,13 +72,13 @@ namespace QuestScript.Interpreter
 
         public override Lazy<object> VisitRelationalExpression(QuestScriptParser.RelationalExpressionContext context)
         {
-            var leftType = _environmentBuilder.TypeInferenceVisitor.Visit(context.left);
-            var rightType = _environmentBuilder.TypeInferenceVisitor.Visit(context.right);
+            var leftType = _scriptEnvironmentBuilder.TypeInferenceVisitor.Visit(context.left);
+            var rightType = _scriptEnvironmentBuilder.TypeInferenceVisitor.Visit(context.right);
 
             if (!TypeUtil.IsComparable(leftType) ||
                 !TypeUtil.IsComparable(rightType))
             {
-                _environmentBuilder.Errors.Add(new InvalidOperandsException(context, context.op.GetText(), leftType,rightType));
+                _scriptEnvironmentBuilder.Errors.Add(new InvalidOperandsException(context, context.op.GetText(), leftType,rightType));
                 return new Lazy<object>(() => null);
             }
 
@@ -111,10 +111,10 @@ namespace QuestScript.Interpreter
 
         public override Lazy<object> VisitNotExpression(QuestScriptParser.NotExpressionContext context)
         {
-            var type = _environmentBuilder.TypeInferenceVisitor.Visit(context.expr);
+            var type = _scriptEnvironmentBuilder.TypeInferenceVisitor.Visit(context.expr);
             if (type != ObjectType.Boolean)
             {
-                _environmentBuilder.Errors.Add(new UnexpectedTypeException(context, ObjectType.Boolean, type, context.expr, "In general, 'not' operators are applicable only on boolean expressions."));
+                _scriptEnvironmentBuilder.Errors.Add(new UnexpectedTypeException(context, ObjectType.Boolean, type, context.expr, "In general, 'not' operators are applicable only on boolean expressions."));
                 return new Lazy<object>(() => null);
             }
 
@@ -127,15 +127,15 @@ namespace QuestScript.Interpreter
 
         private Lazy<object> VisitArithmeticExpression(ParserRuleContext context, ParserRuleContext op,ParserRuleContext left, ParserRuleContext right)
         {
-            var expressionType = _environmentBuilder.TypeInferenceVisitor.Visit(context);
+            var expressionType = _scriptEnvironmentBuilder.TypeInferenceVisitor.Visit(context);
             if (!TypeUtil.IsNumeric(expressionType) && expressionType != ObjectType.String)
             {
-                _environmentBuilder.Errors.Add(
+                _scriptEnvironmentBuilder.Errors.Add(
                     new InvalidOperandsException(
                         context,
                         op.GetText(),
-                        _environmentBuilder.TypeInferenceVisitor.Visit(left),
-                        _environmentBuilder.TypeInferenceVisitor.Visit(right)));
+                        _scriptEnvironmentBuilder.TypeInferenceVisitor.Visit(left),
+                        _scriptEnvironmentBuilder.TypeInferenceVisitor.Visit(right)));
 
                 return new Lazy<object>(() => null);
             }
@@ -213,11 +213,11 @@ namespace QuestScript.Interpreter
 
         public override Lazy<object> VisitPostfixUnaryExpression(QuestScriptParser.PostfixUnaryExpressionContext context)
         {
-            var type = _environmentBuilder.TypeInferenceVisitor.Visit(context.expr);
+            var type = _scriptEnvironmentBuilder.TypeInferenceVisitor.Visit(context.expr);
 
             if (!TypeUtil.IsNumeric(type))
             {
-                _environmentBuilder.Errors.Add(new UnexpectedTypeException(context,ObjectType.Integer,type,context.expr,"Expected the incremented expression to be numeric, but it wasn't."));
+                _scriptEnvironmentBuilder.Errors.Add(new UnexpectedTypeException(context,ObjectType.Integer,type,context.expr,"Expected the incremented expression to be numeric, but it wasn't."));
                 return new Lazy<object>(() => null);
             }
 
