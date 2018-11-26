@@ -72,7 +72,7 @@ specialFunctionStatement: functionName = SpecialFunctionName (LeftParen argument
 
 firsttimeStatement: 'firsttime' firstTimeScript = codeBlockStatement ('otherwise' otherwiseScript = codeBlockStatement)?;
 
-functionStatement: functionName = Identifier (LeftParen argumentsList RightParen)?;
+functionStatement: functionName = Identifier LeftParen argumentsList RightParen;
 
 assignmentStatement: LVal = lValue '=' RVal = expression;
 
@@ -100,9 +100,9 @@ expression:
     ;
 
 rValue:
-       functionStatement    #FunctionOperand
-     | literal              #LiteralOperand
-     | lValue               #VariableOperand
+       expr = functionStatement    #FunctionOperand
+     | literal					   #LiteralOperand
+     | lValue					   #VariableOperand
     ;
 
 lValue

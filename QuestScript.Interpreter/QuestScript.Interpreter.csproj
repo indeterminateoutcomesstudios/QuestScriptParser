@@ -198,6 +198,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Exceptions\AmbiguityException.cs" />
+    <Compile Include="Exceptions\BaseParserErrorException.cs" />
+    <Compile Include="Exceptions\SyntaxErrorException.cs" />
+    <Compile Include="FunctionReferencesBuilder.cs" />
+    <Compile Include="ParseErrorGatherer.cs" />
     <Compile Include="ScriptEnvironment.cs" />
     <Compile Include="Extensions\EnvironmentExtensions.cs" />
     <Compile Include="Exceptions\DivisionByZeroException.cs" />

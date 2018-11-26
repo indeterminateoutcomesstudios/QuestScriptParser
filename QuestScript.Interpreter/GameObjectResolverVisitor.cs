@@ -31,6 +31,9 @@ namespace QuestScript.Interpreter
         private static readonly string QuestLanguageLibrariesPath;
 
         private readonly List<FunctionDefinition> _functionDefinitions = new List<FunctionDefinition>();
+        private readonly Dictionary<string, HashSet<string>> _functionReferences = new Dictionary<string, HashSet<string>>();
+        private readonly FunctionReferencesBuilder _referenceBuilder = new FunctionReferencesBuilder();
+        private readonly string _filePath;
 
         public HashSet<IFunction> Functions { get; } = new HashSet<IFunction>();
         public HashSet<string> References { get; } = new HashSet<string>();
@@ -41,8 +44,13 @@ namespace QuestScript.Interpreter
 
         static GameObjectResolverVisitor()
         {
-            QuestCoreLibrariesPath = Path.Combine(EnvironmentUtil.GetQuestPath(), "Core");
+            QuestCoreLibrariesPath = Path.Combine(EnvironmentUtil.GetQuestInstallationPath(), "Core");
             QuestLanguageLibrariesPath = Path.Combine(QuestCoreLibrariesPath, "Languages");
+        }
+
+        public GameObjectResolverVisitor(string filePath = null)
+        {
+            _filePath = filePath;
         }
 
         public override bool VisitElement(QuestGameParser.ElementContext context)
@@ -94,7 +102,7 @@ namespace QuestScript.Interpreter
             var inputStream = new AntlrFileStream(libraryPath);
             QuestGameLexer.SetInputStream(inputStream);
             QuestGameParser.SetInputStream(new CommonTokenStream(QuestGameLexer));
-
+            
             var includeLibraryVisitor = new GameObjectResolverVisitor();
             var parsedTree = QuestGameParser.document();
             includeLibraryVisitor.Visit(parsedTree);
@@ -137,13 +145,20 @@ namespace QuestScript.Interpreter
                     : ObjectType.Unknown;
             }
 
-            _functionDefinitions.Add(new FunctionDefinition
+            var newDefinition = new FunctionDefinition
             {
                 Name = functionName,
                 Parameters = parameters,
                 Implementation = Regex.Unescape(functionImplementation),
                 ReturnType = returnType
-            });
+            };
+            _functionDefinitions.Add(newDefinition);
+            
+            ScriptLexer.SetInputStream(new AntlrInputStream(newDefinition.Implementation));
+            ScriptParser.SetInputStream(new CommonTokenStream(ScriptLexer));
+            var parseTree = ScriptParser.script();
+            _referenceBuilder.Reset();
+            _functionReferences.Add(newDefinition.Name, _referenceBuilder.Visit(parseTree));
         }
 
         private void VisitInclude(QuestGameParser.ElementContext context)
@@ -164,7 +179,7 @@ namespace QuestScript.Interpreter
                 context.GetText());
         }
 
-        private class FunctionDefinition
+        public class FunctionDefinition
         {
             public string Name;
             public List<string> Parameters;
