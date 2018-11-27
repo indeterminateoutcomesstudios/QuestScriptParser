@@ -208,16 +208,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\QuestScript.Interpreter\QuestScript.Interpreter.csproj">
-      <Project>{8fafb5e8-6127-452f-adbf-0be0c69bffcc}</Project>
-      <Name>QuestScript.Interpreter</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\QuestScript.Parser\QuestScript.Parser.csproj">
-      <Project>{0d832ccb-3975-44ba-8dc9-b1d4ef16b68f}</Project>
-      <Name>QuestScript.Parser</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <Analyzer Include="..\packages\Microsoft.CodeAnalysis.Analyzers.2.6.2\analyzers\dotnet\cs\Microsoft.CodeAnalysis.Analyzers.dll" />
     <Analyzer Include="..\packages\Microsoft.CodeAnalysis.Analyzers.2.6.2\analyzers\dotnet\cs\Microsoft.CodeAnalysis.CSharp.Analyzers.dll" />
   </ItemGroup>

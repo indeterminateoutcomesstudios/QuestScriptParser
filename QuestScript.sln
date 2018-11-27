@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28010.2050
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuestScript.Parser", "QuestScript.Parser\QuestScript.Parser.csproj", "{0D832CCB-3975-44BA-8DC9-B1D4EF16B68F}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuestScript.Tryouts", "QuestScript.Tryouts\QuestScript.Tryouts.csproj", "{BD4258CC-79FE-485D-8BB8-CAD572F18EDE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuestScript.Interpreter", "QuestScript.Interpreter\QuestScript.Interpreter.csproj", "{8FAFB5E8-6127-452F-ADBF-0BE0C69BFFCC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuestScript.Parser", "QuestScript.Parser\QuestScript.Parser.csproj", "{AEA8C614-84C9-4156-A1F6-8B012A12CD24}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuestScript.Parser.Tests", "QuestScript.Parser.Tests\QuestScript.Parser.Tests.csproj", "{2FE42E54-82AD-43CB-A99F-05954CE8E556}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,18 +15,18 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{0D832CCB-3975-44BA-8DC9-B1D4EF16B68F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0D832CCB-3975-44BA-8DC9-B1D4EF16B68F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0D832CCB-3975-44BA-8DC9-B1D4EF16B68F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0D832CCB-3975-44BA-8DC9-B1D4EF16B68F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BD4258CC-79FE-485D-8BB8-CAD572F18EDE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BD4258CC-79FE-485D-8BB8-CAD572F18EDE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BD4258CC-79FE-485D-8BB8-CAD572F18EDE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BD4258CC-79FE-485D-8BB8-CAD572F18EDE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8FAFB5E8-6127-452F-ADBF-0BE0C69BFFCC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8FAFB5E8-6127-452F-ADBF-0BE0C69BFFCC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8FAFB5E8-6127-452F-ADBF-0BE0C69BFFCC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8FAFB5E8-6127-452F-ADBF-0BE0C69BFFCC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AEA8C614-84C9-4156-A1F6-8B012A12CD24}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AEA8C614-84C9-4156-A1F6-8B012A12CD24}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AEA8C614-84C9-4156-A1F6-8B012A12CD24}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AEA8C614-84C9-4156-A1F6-8B012A12CD24}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2FE42E54-82AD-43CB-A99F-05954CE8E556}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2FE42E54-82AD-43CB-A99F-05954CE8E556}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2FE42E54-82AD-43CB-A99F-05954CE8E556}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2FE42E54-82AD-43CB-A99F-05954CE8E556}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
