@@ -6,5 +6,6 @@ namespace QuestScript.Parser.Expressions
 {
     public class LiteralExpression : ScriptExpression
     {
+        public object Value { get; set; }
     }
 }

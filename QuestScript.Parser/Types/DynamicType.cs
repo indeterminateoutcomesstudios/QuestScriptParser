@@ -10,5 +10,7 @@
         }
 
         public override string ToString() => "object";
+
+        public static DynamicType Instance { get; } = new DynamicType();
     }
 }

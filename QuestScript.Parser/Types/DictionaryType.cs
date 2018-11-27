@@ -4,10 +4,9 @@ namespace QuestScript.Parser.Types
 {
     public class DictionaryType : Type
     {
-        public override System.Type UnderlyingType => typeof(Dictionary<object,object>);
-        public override string ToString()
-        {
-            return "dictionary";
-        }
+        public override System.Type UnderlyingType => typeof(Dictionary<string,object>);
+        public override string ToString() => "dictionary";
+
+        public static DictionaryType Instance { get; } = new DictionaryType();
     }
 }

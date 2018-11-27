@@ -61,35 +61,7 @@ namespace QuestScript.Parser
                 ? Result.Empty<string>(input, "an identifier must not end with a whitespace")
                 : Result.Value(sb.ToString(), input, remainder);
         }
-
-        private static TextParser<bool> Boolean { get; } = (TextParser<bool>) (input =>
-        {
-            var result = input.ConsumeChar();
-            var lower = char.ToLowerInvariant(result.Value);
-            if (!result.HasValue && lower != 't' && lower != 'f')
-                return Result.Empty<bool>(input, new []{"true", "false"});
-
-            bool ConsumeAndCheck(char predicate)
-            {
-                var res = result.Remainder.ConsumeChar();
-                return res.HasValue && char.ToLower(res.Value) == char.ToLower(predicate);
-            }
-
-            switch (lower)
-            {
-                case 't' when ConsumeAndCheck('r') &&
-                              ConsumeAndCheck('u') &&
-                              ConsumeAndCheck('e'):
-                    return Result.Value(true, input, result.Remainder);
-                case 'f' when ConsumeAndCheck('a') &&
-                              ConsumeAndCheck('l') &&
-                              ConsumeAndCheck('s') &&
-                              ConsumeAndCheck('e'):
-                    return Result.Value(false, input, result.Remainder);
-            }
-
-            return Result.Empty<bool>(input, new []{"true", "false"});
-        });
+       
         #endregion
 
         public static readonly Tokenizer<ScriptToken> Instance  = new TokenizerBuilder<ScriptToken>()
@@ -101,11 +73,12 @@ namespace QuestScript.Parser
             .Match(Comment.CStyle,ScriptToken.BlockComment)
 
             //literals
-            .Match(Numerics.IntegerInt32, ScriptToken.IntegerLiteral)
-            .Match(Numerics.DecimalDouble, ScriptToken.DoubleLiteral)
+            .Match(Numerics.Integer, ScriptToken.IntegerLiteral)
+            .Match(Numerics.Decimal, ScriptToken.DoubleLiteral)
             .Match(QuotedString.CStyle, ScriptToken.StringLiteral)
-            .Match(Span.EqualToIgnoreCase("null").Value((object)null), ScriptToken.NullLiteral)
-            .Match(Boolean, ScriptToken.BooleanLiteral)
+            .Match(Span.EqualToIgnoreCase("null"), ScriptToken.NullLiteral)
+            .Match(Span.EqualToIgnoreCase(bool.TrueString).Try()
+                .Or(Span.EqualToIgnoreCase(bool.FalseString)), ScriptToken.BooleanLiteral)
 
             //misc
             .Match(Character.EqualTo(','),ScriptToken.Comma)

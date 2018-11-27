@@ -6,5 +6,8 @@ namespace QuestScript.Parser.Types
     {
         public override System.Type UnderlyingType => typeof(ArrayList);
         public override string ToString() => "list";
+
+        public static ListType Instance { get; } = new ListType();
+
     }
 }

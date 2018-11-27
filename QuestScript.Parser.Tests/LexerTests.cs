@@ -18,6 +18,7 @@ namespace QuestScript.Parser.Tests
             Assert.Equal(1,count);
 
             var token = tokens.ConsumeToken();
+            
             Assert.Null(token.ErrorMessage);
             Assert.Equal(ScriptToken.Identifier, token.Value.Kind);
         }
