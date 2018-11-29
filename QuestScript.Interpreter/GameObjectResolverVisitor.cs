@@ -33,12 +33,14 @@ namespace QuestScript.Interpreter
         private readonly List<FunctionDefinition> _functionDefinitions = new List<FunctionDefinition>();
         private readonly Dictionary<string, HashSet<string>> _functionReferences = new Dictionary<string, HashSet<string>>();
         private readonly FunctionReferencesBuilder _referenceBuilder = new FunctionReferencesBuilder();
-        private readonly string _filePath;
+
+        private readonly Stack<string> _currentFile = new Stack<string>();
 
         public HashSet<IFunction> Functions { get; } = new HashSet<IFunction>();
         public HashSet<string> References { get; } = new HashSet<string>();
 
-        public HashSet<BaseInterpreterException> Errors { get; } = new HashSet<BaseInterpreterException>();    
+        public HashSet<BaseInterpreterException> InterpreterErrors { get; } = new HashSet<BaseInterpreterException>();
+        public Dictionary<string, HashSet<BaseParserErrorException>> ParserErrors { get; } = new Dictionary<string, HashSet<BaseParserErrorException>>();
 
         public GameFileType Type { get; private set; }
 
@@ -46,11 +48,6 @@ namespace QuestScript.Interpreter
         {
             QuestCoreLibrariesPath = Path.Combine(EnvironmentUtil.GetQuestInstallationPath(), "Core");
             QuestLanguageLibrariesPath = Path.Combine(QuestCoreLibrariesPath, "Languages");
-        }
-
-        public GameObjectResolverVisitor(string filePath = null)
-        {
-            _filePath = filePath;
         }
 
         public override bool VisitElement(QuestGameParser.ElementContext context)
@@ -61,16 +58,16 @@ namespace QuestScript.Interpreter
             {
                 case "include":
                     VisitInclude(context);
-                    break;                    
+                    break;
                 case "library":
                     Type = GameFileType.Library;
-                    break;                    
+                    break;
                 case "function":
                     VisitFunction(context);
                     break;
                 case "asl":
                     Type = GameFileType.Game;
-                    break;                    
+                    break;
             }
 
             return base.VisitElement(context);
@@ -83,7 +80,7 @@ namespace QuestScript.Interpreter
             {
                 //try languages folder
                 //try current folder
-                var alternativeLibraryPath = Path.Combine(QuestLanguageLibrariesPath,library);
+                var alternativeLibraryPath = Path.Combine(QuestLanguageLibrariesPath, library);
                 if (File.Exists(alternativeLibraryPath))
                 {
                     return; //do not process language files - not relevant
@@ -99,10 +96,11 @@ namespace QuestScript.Interpreter
                 libraryPath = alternativeLibraryPath;
             }
 
+            _currentFile.Push(libraryPath);
             var inputStream = new AntlrFileStream(libraryPath);
             QuestGameLexer.SetInputStream(inputStream);
             QuestGameParser.SetInputStream(new CommonTokenStream(QuestGameLexer));
-            
+
             var includeLibraryVisitor = new GameObjectResolverVisitor();
             var parsedTree = QuestGameParser.document();
             includeLibraryVisitor.Visit(parsedTree);
@@ -113,6 +111,7 @@ namespace QuestScript.Interpreter
             }
 
             MergeWith(includeLibraryVisitor);
+            _currentFile.Pop();
         }
 
         private void MergeWith(GameObjectResolverVisitor otherVisitor)
@@ -121,11 +120,13 @@ namespace QuestScript.Interpreter
             //TODO: add here other stuff that the visitor parses
         }
 
+
+
         private void VisitFunction(QuestGameParser.ElementContext context)
         {
             if (!context.TryGetAttributeByName("name", out var nameAttribute))
             {
-                ThrowMissingAttribute(context,"name");
+                ThrowMissingAttribute(context, "name");
             }
 
             var functionName = nameAttribute.Value;
@@ -140,7 +141,7 @@ namespace QuestScript.Interpreter
 
             if (context.TryGetAttributeByName("type", out var returnTypeAttribute))
             {
-                returnType =  TypeUtil.TryParse(returnTypeAttribute.Value,out returnType)
+                returnType = TypeUtil.TryParse(returnTypeAttribute.Value, out returnType)
                     ? returnType
                     : ObjectType.Unknown;
             }
@@ -153,9 +154,21 @@ namespace QuestScript.Interpreter
                 ReturnType = returnType
             };
             _functionDefinitions.Add(newDefinition);
-            
+
             ScriptLexer.SetInputStream(new AntlrInputStream(newDefinition.Implementation));
             ScriptParser.SetInputStream(new CommonTokenStream(ScriptLexer));
+
+            ScriptParser.RemoveErrorListeners();
+
+            var key = _currentFile.Count > 0 ? _currentFile.Peek() : "root";
+            if (!ParserErrors.TryGetValue(key, out var errors))
+            {
+                errors = new HashSet<BaseParserErrorException>();
+                ParserErrors.Add(key, errors);
+            }
+
+            ScriptParser.AddErrorListener(new ParseErrorGatherer(errors));
+
             var parseTree = ScriptParser.script();
             _referenceBuilder.Reset();
             _functionReferences.Add(newDefinition.Name, _referenceBuilder.Visit(parseTree));
@@ -163,12 +176,16 @@ namespace QuestScript.Interpreter
 
         private void VisitInclude(QuestGameParser.ElementContext context)
         {
-            if(!context.TryGetAttributeByName("ref", out var attr))
+            if (!context.TryGetAttributeByName("ref", out var attr))
             {
-                ThrowMissingAttribute(context,"ref");
+                ThrowMissingAttribute(context, "ref");
             }
 
             References.Add(attr.Value);
+
+            if (attr.Value == "CoreFunctions.aslx")
+                Debugger.Break();
+
             ProcessIncludedLibraryAndMerge(attr.Value);
         }
 
@@ -188,7 +205,7 @@ namespace QuestScript.Interpreter
 
             public override string ToString()
             {
-                return $"{nameof(Name)}: {Name}, {nameof(Parameters)}: {string.Join(",",Parameters)}, {nameof(ReturnType)}: {ReturnType}";
+                return $"{nameof(Name)}: {Name}, {nameof(Parameters)}: {string.Join(",", Parameters)}, {nameof(ReturnType)}: {ReturnType}";
             }
         }
     }

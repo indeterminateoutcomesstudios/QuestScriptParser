@@ -33,15 +33,17 @@ parser grammar QuestGameParser;
 
 options { tokenVocab=QuestGameLexer; }
 
-document    :   prolog? misc* element misc* EOF;
+document    :   misc* element misc* EOF;
 
-prolog      :   XMLDeclOpen attribute* SPECIAL_CLOSE ;
+cdata		: '<![CDATA[' ESCAPED_SCRIPT ']]>';
 
-content     :   chardata?
-                ((element | reference | CDATA | PI | COMMENT) chardata?)* ;
+content     :   cdata | 
+				(chardata | reference )*
+				;
 
-element     :   '<' ElementName = Name attribute* '>' content '<' '/' Name '>'
-            |   '<' ElementName = Name attribute* '/>'
+element     :   misc* '<' ElementName = Name attribute* '>' content '<' '/' Name '>' misc*
+			|	misc* '<' ElementName = Name attribute* '>' misc* element+ misc* '<' '/' Name '>' misc*
+            |   misc* '<' ElementName = Name attribute* '/>' misc*
             ;
 
 reference   :   EntityRef | CharRef ;
@@ -51,6 +53,6 @@ attribute   :   Key = Name '=' Value = STRING ; // Our STRING is AttValue in spe
 /** ``All text that is not markup constitutes the character data of
  *  the document.''
  */
-chardata    :   TEXT | SEA_WS ;
+chardata    :   SCRIPT | SEA_WS ;
 
 misc : COMMENT | PI | SEA_WS ;
