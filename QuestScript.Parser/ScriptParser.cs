@@ -1,7 +1,8 @@
 ﻿using System;
 using System.ComponentModel;
-using QuestScript.Parser.Expressions;
+using System.Runtime.CompilerServices;
 using QuestScript.Parser.Helpers;
+using QuestScript.Parser.ScriptElements;
 using QuestScript.Parser.Tokens;
 using QuestScript.Parser.Types;
 using Superpower;
@@ -30,19 +31,19 @@ namespace QuestScript.Parser
                         });
         }
 
-        private static readonly TokenListParser<ScriptToken, LiteralExpression> LiteralBoolean =
+        private static readonly TokenListParser<ScriptToken, LiteralExpression> LiteralBooleanExpression =
             GenerateLiteralsParser<BooleanType>(ScriptToken.BooleanLiteral);
 
-        private static readonly TokenListParser<ScriptToken, LiteralExpression> LiteralInteger =
+        private static readonly TokenListParser<ScriptToken, LiteralExpression> LiteralIntegerExpression =
             GenerateLiteralsParser<IntegerType>(ScriptToken.IntegerLiteral);
 
-        private static readonly TokenListParser<ScriptToken, LiteralExpression> LiteralDouble =
+        private static readonly TokenListParser<ScriptToken, LiteralExpression> LiteralDoubleExpression =
             GenerateLiteralsParser<DoubleType>(ScriptToken.DoubleLiteral);
 
-        private static readonly TokenListParser<ScriptToken, LiteralExpression> LiteralString =
+        private static readonly TokenListParser<ScriptToken, LiteralExpression> LiteralStringExpression =
             GenerateLiteralsParser<StringType>(ScriptToken.StringLiteral);
         
-        private static readonly TokenListParser<ScriptToken, LiteralExpression> LiteralNull =
+        private static readonly TokenListParser<ScriptToken, LiteralExpression> LiteralNullExpression =
             Token.EqualTo(ScriptToken.NullLiteral)
                 .Select(t => new LiteralExpression
                 {
@@ -50,14 +51,34 @@ namespace QuestScript.Parser
                     Value = null
                 });
 
-        public static readonly TokenListParser<ScriptToken, LiteralExpression> Literal =
-            LiteralInteger.Or(LiteralDouble).Or(LiteralString).Or(LiteralBoolean).Or(LiteralNull);
+        #endregion
+
+        #region Subparsers for Expressions
 
         #endregion
 
-        public static ScriptRoot Parse(TokenList<ScriptToken> scriptTokens)
-        {
-            var root = new ScriptRoot();
+        private static readonly TokenListParser<ScriptToken, LiteralExpression> LiteralExpression =
+            LiteralIntegerExpression
+                .Try().Or(LiteralDoubleExpression)
+                .Try().Or(LiteralStringExpression)
+                .Try().Or(LiteralBooleanExpression)
+                .Try().Or(LiteralNullExpression);
+
+        private static readonly TokenListParser<ScriptToken, ParenthesizedExpression> ParenthesizedExpression =
+            from leftParen in Token.EqualTo(ScriptToken.LeftParen)
+            from expr in Superpower.Parse.Ref(() => Expression)
+            from rightParen in Token.EqualTo(ScriptToken.RightParen)
+            select new ParenthesizedExpression(expr);
+        
+        //exception parser, it parses types recursively
+        private static readonly TokenListParser<ScriptToken, Expression> Expression = 
+                LiteralExpression.Select(expr => (Expression)expr)
+                    .Try().Or(ParenthesizedExpression.Select(x => (Expression)x))
+            ;
+
+        public static ScriptContext Parse(TokenList<ScriptToken> scriptTokens)
+        {            
+            var root = new ScriptContext();
             
             return root;
         }
