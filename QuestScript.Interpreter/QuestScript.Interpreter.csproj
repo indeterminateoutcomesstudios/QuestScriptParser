@@ -202,6 +202,7 @@
     <Compile Include="Exceptions\BaseParserErrorException.cs" />
     <Compile Include="Exceptions\SyntaxErrorException.cs" />
     <Compile Include="FunctionReferencesBuilder.cs" />
+    <Compile Include="GameObjectResolverVisitor.cs" />
     <Compile Include="ParseErrorGatherer.cs" />
     <Compile Include="ScriptEnvironment.cs" />
     <Compile Include="Extensions\EnvironmentExtensions.cs" />
@@ -209,7 +210,7 @@
     <Compile Include="Exceptions\FailedToInferTypeException.cs" />
     <Compile Include="Exceptions\FailedValueInterpretation.cs" />
     <Compile Include="Exceptions\InvalidArrayLiteralException.cs" />
-    <Compile Include="GameObjectResolverVisitor.cs" />
+    <Compile Include="old_GameObjectResolverVisitor.cs" />
     <Compile Include="Helpers\CollectorTokenSource.cs" />
     <Compile Include="Helpers\EnvironmentUtil.cs" />
     <Compile Include="Helpers\TypeUtil.cs" />

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Management;
 using System.Text.RegularExpressions;
 using Antlr4.Runtime;
@@ -43,14 +44,15 @@ namespace QuestScript.Tryouts
 
             //            var envTree = environmentTreeBuilder.Output;
 
-            var questGameLexer = new QuestGameLexer(new AntlrFileStream(@"C:\Users\orev.HRHINOS\Documents\Quest Games\TestGame\TestGame.aslx"));
-            var questGameParser = new QuestGameParser(new CommonTokenStream(questGameLexer));
+            //var questGameLexer = new GameScriptLexer(new AntlrFileStream(@"C:\Users\orev.HRHINOS\Documents\Quest Games\TestGame\TestGame.aslx"));
+            //var test = questGameLexer.GetAllTokens().ToList();
+            //var questGameParser = new QuestGameParser(new CommonTokenStream(questGameLexer));
 
-            var questGameTree = questGameParser.document();
-            var gameObjectResolver = new GameObjectResolverVisitor();
-            gameObjectResolver.Visit(questGameTree);
-
-            Console.ReadKey();
+            //var questGameTree = questGameParser.document();
+            //var gameObjectResolver = new GameObjectResolverVisitor();
+            //gameObjectResolver.Visit(questGameTree);
+            ////Console.WriteLine(questGameTree.ToStringTree(questGameParser));
+            //Console.ReadKey();
         }
     }
 }
