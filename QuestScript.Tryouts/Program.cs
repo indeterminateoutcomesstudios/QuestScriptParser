@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Management;
-using System.Text.RegularExpressions;
-using Antlr4.Runtime;
 using QuestScript.Interpreter;
 using QuestScript.Interpreter.Helpers;
 using QuestScript.Parser;
