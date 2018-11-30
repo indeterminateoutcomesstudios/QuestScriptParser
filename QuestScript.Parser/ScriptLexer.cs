@@ -102,6 +102,13 @@ namespace QuestScript.Parser
             .Match(Span.EqualToIgnoreCase("for"),ScriptToken.For)
             .Match(Span.EqualToIgnoreCase("foreach"),ScriptToken.ForEach)
 
+            //operators
+            .Match(Character.EqualTo('+'),ScriptToken.Plus)
+            .Match(Character.EqualTo('-'),ScriptToken.Minus)
+            .Match(Character.EqualTo('*'),ScriptToken.Multiply)
+            .Match(Character.EqualTo('/'),ScriptToken.Divide)
+            .Match(Character.EqualTo('%'),ScriptToken.Mod)
+
             .Build();
 
     }

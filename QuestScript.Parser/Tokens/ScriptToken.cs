@@ -53,6 +53,33 @@ namespace QuestScript.Parser.Tokens
         [Token(Category = "identifier")]
         Identifier,
 
+        //operators
+
+        [Token(Example = "+",Category = "operator")]
+        Plus,
+
+        [Token(Example = "-",Category = "operator")]
+        Minus,
+
+        [Token(Example = "*",Category = "operator")]
+        Multiply,
+
+        [Token(Example = "/",Category = "operator")]
+        Divide,
+
+
+        [Token(Example = "%",Category = "operator")]
+        Mod,
+
+        [Token(Example = "And",Category = "operator")]
+        And,
+
+        [Token(Example = "Or",Category = "operator")]
+        Or,
+
+        [Token(Example = "Not",Category = "operator")]
+        Not,
+
         //keyword tokens
         [Token(Category = "keyword")]
         If,
