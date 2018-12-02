@@ -196,9 +196,6 @@ namespace QuestScript.Interpreter
 
             var parseTree = ScriptParser.script();
 
-            if(errors.Count > 0)
-                Debugger.Break();
-
             _referenceBuilder.Reset();
             _functionReferences.Add(newDefinition.Name, _referenceBuilder.Visit(parseTree));
         }    

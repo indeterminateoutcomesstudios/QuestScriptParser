@@ -45,8 +45,9 @@ iterationStatement
 				    enumerationVariable = expression RightParen
 				        code = statement                             #ForEachStatement
     | 'for' LeftParen iterationVariable = Identifier ','
-							  iterationStart = IntegerLiteral ','
-							  iterationEnd = IntegerLiteral
+							  iterationStart = expression ','
+							  iterationEnd = expression 
+							  (',' step = expression)?
 			  RightParen code = statement                                   #ForStatement
     ;
 
@@ -104,7 +105,9 @@ expression:
 rValue:
        expr = functionStatement    #FunctionOperand
      | literal					   #LiteralOperand
+     | ('-')? literal              #NegativeLiteralOperand
      | lValue					   #VariableOperand
+     | ('-')? lValue			   #NegativeVariableOperand
     ;
 
 lValue

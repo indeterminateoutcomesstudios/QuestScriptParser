@@ -87,7 +87,7 @@ namespace QuestScript.Interpreter
             {
                 //note: we know that iteration variable of "for" is integer because syntax specifies so
                 DeclareLocalVariable(context.iterationVariable.Text, context, ObjectType.Integer,
-                    new Lazy<object>(() => int.Parse(context.iterationStart.Text)),isIterationVariable:true);
+                    _valueResolverVisitor.Visit(context.iterationStart),isIterationVariable:true);
             }
             else
             {
