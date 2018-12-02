@@ -216,7 +216,6 @@
     <Compile Include="InterpreterElements\Variable.cs" />
     <Compile Include="InterpreterElements\Environment.cs" />
     <Compile Include="Helpers\ParserRuleContextUtils.cs" />
-    <Compile Include="Extensions\QuestGameParserExtensions.cs" />
     <Compile Include="Script.cs" />
     <Compile Include="ScriptElements\IFunction.cs" />
     <Compile Include="ScriptElements\IInstance.cs" />

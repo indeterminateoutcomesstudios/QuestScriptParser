@@ -1,12 +1,12 @@
 grammar QuestScript;
- 
-@lexer::members 
+
+@lexer::members
 {
 	int nesting = 0;
 }
 
 script: (statement)* EOF;
- 
+
 statement
 	:
         functionStatement
@@ -20,26 +20,26 @@ statement
     |   breakStatement
     |   returnStatement
 	|	switchCaseStatement
-	|	postfixUnaryStatement
+	|	{ _input.La(1) == QuestScriptLexer.PlusPlus }? postfixUnaryStatement
+	|   memberMethodStatement
     ;
 
-switchCaseStatement: 
+switchCaseStatement:
 	'switch' LeftParen switchConditionStatement = expression RightParen
-	'{' 
-		cases += caseStatement* 
-		defaultContext = defaultStatement? 
-	'}'; 
+	'{'
+		cases += caseStatement*
+		defaultContext = defaultStatement?
+	'}';
 
 caseStatement : 'case' LeftParen caseValue = literal RightParen code = statement;
 defaultStatement : 'default' code = statement;
 
 returnStatement: 'return' (LeftParen expression? RightParen)?;
 
-continueStatement: Continue;
 breakStatement: Break;
 
 iterationStatement
-    : 
+    :
       'while' LeftParen condition = expression RightParen code = statement		           #WhileStatement
     | 'foreach' LeftParen iterationVariable = Identifier ','
 				    enumerationVariable = expression RightParen
@@ -62,17 +62,17 @@ ifStatement:
     )?
     ;
 
-codeBlockStatement : 
+codeBlockStatement :
 	'{' statements += statement* '}';
 
-argumentsList: (args += expression (',' args += expression)*)?;
+argumentsList: (args += expression (',' args += expression)*);
 
 //for special script syntax such as "on ready { ... script ... }
 specialFunctionStatement: functionName = SpecialFunctionName (LeftParen argumentsList RightParen)? codeBlockStatement?;
 
 firsttimeStatement: 'firsttime' firstTimeScript = codeBlockStatement ('otherwise' otherwiseScript = codeBlockStatement)?;
 
-functionStatement: functionName = Identifier LeftParen argumentsList RightParen;
+functionStatement: functionName = Identifier (LeftParen argumentsList? RightParen)?;
 
 assignmentStatement: LVal = lValue '=' RVal = expression;
 
@@ -81,6 +81,8 @@ scriptAssignmentStatement: LVal = lValue  '=>' RVal = codeBlockStatement;
 arrayLiteral : '[' (elements += expression (',' elements += expression)*)? ']';
 
 postfixUnaryStatement: expression op = (PlusPlus|MinusMinus);
+
+memberMethodStatement: instance = expression '.' method = functionStatement;
 
 //expressions evaluate to some value...
 expression:
@@ -107,7 +109,7 @@ rValue:
 
 lValue
 	 :
-        Identifier									#IdentifierOperand	 
+        Identifier									#IdentifierOperand
     |   instance = lValue '.' member = Identifier   #MemberFieldOperand
     ;
 
@@ -126,7 +128,7 @@ multiplicativeOp:
         '/'     #DivOp
     |   '%'     #ModOp
     |   '*'     #ModOp
-    ;				
+    ;
 
 additiveOp:
         '+'     #PlusOp
@@ -135,11 +137,11 @@ additiveOp:
 
 arithmeticOp: multiplicativeOp | additiveOp;
 
-literal: 
+literal:
 	  IntegerLiteral #IntegerLiteral
 	| DoubleLiteral  #DoubleLiteral
 	| StringLiteral	 #StringLiteral
-	| NullLiteral	 #NullLiteral 
+	| NullLiteral	 #NullLiteral
 	| BooleanLiteral #BooleanLiteral
 	;
 
@@ -147,7 +149,7 @@ LeftParen : '(' {nesting++;} ;
 RightParen : ')' {nesting--;} ;
 LeftBracket : '[' {nesting++;} ;
 RightBracket : ']' {nesting--;} ;
-  
+
 PlusPlus: '++';
 MinusMinus: '--';
 Not : 'not';
