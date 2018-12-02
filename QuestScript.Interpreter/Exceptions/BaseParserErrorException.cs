@@ -4,12 +4,6 @@ namespace QuestScript.Interpreter.Exceptions
 {
     public abstract class BaseParserErrorException : Exception
     {
-        public string OffendingExpression { get; set; }
-        public int Line { get; set; }
-        public int Column { get; set; }
-        public int OffendingToken { get; set; }
-        public string Filename { get; set; }
-
         protected BaseParserErrorException()
         {
         }
@@ -22,16 +16,24 @@ namespace QuestScript.Interpreter.Exceptions
         {
         }
 
+        public string OffendingExpression { get; set; }
+        public int Line { get; set; }
+        public int Column { get; set; }
+        public int OffendingToken { get; set; }
+        public string Filename { get; set; }
+
         protected bool Equals(BaseParserErrorException other)
         {
-            return string.Equals(OffendingExpression, other.OffendingExpression) && Line == other.Line && Column == other.Column && OffendingToken == other.OffendingToken && string.Equals(Filename, other.Filename);
+            return string.Equals(OffendingExpression, other.OffendingExpression) && Line == other.Line &&
+                   Column == other.Column && OffendingToken == other.OffendingToken &&
+                   string.Equals(Filename, other.Filename);
         }
 
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (obj.GetType() != GetType()) return false;
             return Equals((BaseParserErrorException) obj);
         }
 
@@ -39,7 +41,7 @@ namespace QuestScript.Interpreter.Exceptions
         {
             unchecked
             {
-                var hashCode = (OffendingExpression != null ? OffendingExpression.GetHashCode() : 0);
+                var hashCode = OffendingExpression != null ? OffendingExpression.GetHashCode() : 0;
                 hashCode = (hashCode * 397) ^ Line;
                 hashCode = (hashCode * 397) ^ Column;
                 hashCode = (hashCode * 397) ^ OffendingToken;

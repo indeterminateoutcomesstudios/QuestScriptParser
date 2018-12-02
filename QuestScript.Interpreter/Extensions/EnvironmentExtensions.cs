@@ -14,7 +14,7 @@ namespace QuestScript.Interpreter.Extensions
                 var variable = environment.LocalVariables.FirstOrDefault(v => v.Name.Equals(name));
                 if (variable != null)
                     return variable;
-           
+
                 environment = environment.Parent;
             }
 
@@ -26,7 +26,6 @@ namespace QuestScript.Interpreter.Extensions
             return GetVariable(environment, name) != null;
         }
 
- 
 
         public static IEnumerable<Environment> IterateBfs(this Environment environment)
         {

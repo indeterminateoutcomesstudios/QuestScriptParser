@@ -9,32 +9,33 @@ using QuestScript.Interpreter.InterpreterElements;
 using QuestScript.Interpreter.ScriptElements;
 using QuestScript.Parser;
 using Environment = QuestScript.Interpreter.InterpreterElements.Environment;
+
 // ReSharper disable ArgumentsStyleLiteral
 
 namespace QuestScript.Interpreter
 {
     public sealed class ScriptEnvironmentBuilder : QuestScriptBaseVisitor<bool>
     {
+        private readonly Dictionary<ParserRuleContext, Environment> _environmentsByContext =
+            new Dictionary<ParserRuleContext, Environment>();
+
         private Environment _current;
-        private readonly TypeInferenceVisitor _typeInferenceVisitor;
-        private readonly ValueResolverVisitor _valueResolverVisitor;
         private Environment _root;
-
-        public TypeInferenceVisitor TypeInferenceVisitor => _typeInferenceVisitor;
-        public ValueResolverVisitor ValueResolverVisitor => _valueResolverVisitor;
-
-        public HashSet<BaseInterpreterException> Errors { get; } = new HashSet<BaseInterpreterException>();
-
-        private readonly Dictionary<ParserRuleContext, Environment> _environmentsByContext = new Dictionary<ParserRuleContext, Environment>();
         private ScriptEnvironment _scriptEnvironment;
 
         public ScriptEnvironmentBuilder()
         {
-            _typeInferenceVisitor = new TypeInferenceVisitor(this);
-            _valueResolverVisitor = new ValueResolverVisitor(this);
+            TypeInferenceVisitor = new TypeInferenceVisitor(this);
+            ValueResolverVisitor = new ValueResolverVisitor(this);
         }
 
-        public ScriptEnvironment Output => 
+        public TypeInferenceVisitor TypeInferenceVisitor { get; }
+
+        public ValueResolverVisitor ValueResolverVisitor { get; }
+
+        public HashSet<BaseInterpreterException> Errors { get; } = new HashSet<BaseInterpreterException>();
+
+        public ScriptEnvironment Output =>
             _scriptEnvironment ?? (_scriptEnvironment = new ScriptEnvironment(_root, _environmentsByContext));
 
         public override bool Visit(IParseTree tree)
@@ -60,21 +61,15 @@ namespace QuestScript.Interpreter
             _current = _current.Parent; //pop
             return success;
         }
-     
+
         public override bool VisitWhileStatement(QuestScriptParser.WhileStatementContext context)
         {
             //if while has a code block, no need for opening a scope
             var shouldOpenNewScope = !context.code.HasDescendantOfType<QuestScriptParser.CodeBlockStatementContext>();
-            if (shouldOpenNewScope)
-            {
-                _current = _current.CreateChild(context); //push
-            }
+            if (shouldOpenNewScope) _current = _current.CreateChild(context); //push
             var success = base.VisitWhileStatement(context);
 
-            if (shouldOpenNewScope)
-            {
-                _current = _current.Parent; //pop
-            }
+            if (shouldOpenNewScope) _current = _current.Parent; //pop
 
             return success;
         }
@@ -84,17 +79,12 @@ namespace QuestScript.Interpreter
             _current = _current.CreateChild(context); //push
 
             if (!_current.IsVariableDefined(context.iterationVariable.Text))
-            {
-                //note: we know that iteration variable of "for" is integer because syntax specifies so
                 DeclareLocalVariable(context.iterationVariable.Text, context, ObjectType.Integer,
-                    _valueResolverVisitor.Visit(context.iterationStart),isIterationVariable:true);
-            }
+                    ValueResolverVisitor.Visit(context.iterationStart), isIterationVariable: true);
             else
-            {
                 Errors.Add(
-                    new ConflictingVariableName(context,context.iterationVariable.Text,
-                            "Iteration variable names in 'for' statements must not conflict with already defined variables."));
-            }
+                    new ConflictingVariableName(context, context.iterationVariable.Text,
+                        "Iteration variable names in 'for' statements must not conflict with already defined variables."));
 
             var success = base.VisitForStatement(context);
             _current = _current.Parent; //pop
@@ -104,23 +94,18 @@ namespace QuestScript.Interpreter
         public override bool VisitForEachStatement(QuestScriptParser.ForEachStatementContext context)
         {
             _current = _current.CreateChild(context); //push
-            var enumerationVariableType = _typeInferenceVisitor.Visit(context.enumerationVariable);
+            var enumerationVariableType = TypeInferenceVisitor.Visit(context.enumerationVariable);
             if (enumerationVariableType != ObjectType.List)
-            {
-                Errors.Add(new UnexpectedTypeException(context,ObjectType.List,enumerationVariableType,context.enumerationVariable,"'foreach' can only enumerate on collection types."));
-            }
+                Errors.Add(new UnexpectedTypeException(context, ObjectType.List, enumerationVariableType,
+                    context.enumerationVariable, "'foreach' can only enumerate on collection types."));
 
             if (!_current.IsVariableDefined(context.iterationVariable.Text))
-            {
-                //TODO: investigate possibility of using some sort of enumerator for this case
-                DeclareLocalVariable(context.iterationVariable.Text, context, context.enumerationVariable, isEnumerationVariable:true);
-            }
+                DeclareLocalVariable(context.iterationVariable.Text, context, context.enumerationVariable,
+                    isEnumerationVariable: true);
             else
-            {
                 Errors.Add(
-                    new ConflictingVariableName(context,context.iterationVariable.Text,
+                    new ConflictingVariableName(context, context.iterationVariable.Text,
                         "Iteration variable names in 'foreach' statements must not conflict with already defined variables."));
-            }
 
             var success = base.VisitForEachStatement(context);
 
@@ -133,19 +118,20 @@ namespace QuestScript.Interpreter
             //assign relevant statement to environment, so we can later resolve variables
             //and check if they are used before they are defined
             _current.Statements.Add(context);
-            _environmentsByContext.Add(context,_current);
+            _environmentsByContext.Add(context, _current);
             return base.VisitStatement(context);
-        }      
+        }
 
         //TODO : add resolution to object members as well                
         public override bool VisitIdentifierOperand(QuestScriptParser.IdentifierOperandContext context)
         {
             //if the parent is RValue -> it is an identifier that is part of an expression, and not a statement
-            if(context.HasParentOfType<QuestScriptParser.RValueContext>() && !_current.IsVariableDefined(context.GetText()))
-                RecordErrorIfUndefined(context,context.GetText());
+            if (context.HasParentOfType<QuestScriptParser.RValueContext>() &&
+                !_current.IsVariableDefined(context.GetText()))
+                RecordErrorIfUndefined(context, context.GetText());
 
             return base.VisitIdentifierOperand(context);
-        }        
+        }
 
         public override bool VisitAssignmentStatement(QuestScriptParser.AssignmentStatementContext context)
         {
@@ -155,19 +141,21 @@ namespace QuestScript.Interpreter
             var variable = _current.GetVariable(identifier);
             var variableDefined = variable != null;
             var isMemberAssignment = identifier.Contains(".");
-            
+
             if (!isMemberAssignment && !variableDefined)
             {
-                DeclareLocalVariable(identifier, context.LVal, valueContext: context.RVal);
+                DeclareLocalVariable(identifier, context.LVal, context.RVal);
             }
-            else if(variableDefined && !isMemberAssignment) //do a type check, since we are not declaring but assigning
-            { //do type checking, since this is not a declaration but an assignment
-                var rValueType = _typeInferenceVisitor.Visit(context.RVal);
-                var lValueType = _typeInferenceVisitor.Visit(context.LVal);
-                if(lValueType != rValueType && !TypeUtil.CanConvert(rValueType,lValueType))
-                    Errors.Add(new UnexpectedTypeException(context,lValueType,rValueType,context.RVal,"Also, tried to find suitable implicit casting, but didn't find anything."));
+            else if (variableDefined && !isMemberAssignment) //do a type check, since we are not declaring but assigning
+            {
+                //do type checking, since this is not a declaration but an assignment
+                var rValueType = TypeInferenceVisitor.Visit(context.RVal);
+                var lValueType = TypeInferenceVisitor.Visit(context.LVal);
+                if (lValueType != rValueType && !TypeUtil.CanConvert(rValueType, lValueType))
+                    Errors.Add(new UnexpectedTypeException(context, lValueType, rValueType, context.RVal,
+                        "Also, tried to find suitable implicit casting, but didn't find anything."));
 
-                variable.Value = _valueResolverVisitor.Visit(context.RVal);
+                variable.Value = ValueResolverVisitor.Visit(context.RVal);
             }
 
             return success;
@@ -175,56 +163,57 @@ namespace QuestScript.Interpreter
 
         //if condition type check - make sure it resolves to boolean type
         public override bool VisitIfStatement(QuestScriptParser.IfStatementContext context)
-        {            
-            var ifConditionExpressionType = _typeInferenceVisitor.Visit(context.condition);
-            if (ifConditionExpressionType != ObjectType.Unknown && 
+        {
+            var ifConditionExpressionType = TypeInferenceVisitor.Visit(context.condition);
+            if (ifConditionExpressionType != ObjectType.Unknown &&
                 ifConditionExpressionType != ObjectType.Boolean)
-            {
-                Errors.Add(new InvalidConditionException(context,"if",context.condition));
-            }
+                Errors.Add(new InvalidConditionException(context, "if", context.condition));
 
             foreach (var elseifCondition in context._elseifConditions)
             {
-                var elseIfConditionExpressionType = _typeInferenceVisitor.Visit(elseifCondition);
-                if (elseIfConditionExpressionType != ObjectType.Unknown && 
+                var elseIfConditionExpressionType = TypeInferenceVisitor.Visit(elseifCondition);
+                if (elseIfConditionExpressionType != ObjectType.Unknown &&
                     elseIfConditionExpressionType != ObjectType.Boolean)
-                {
-                    Errors.Add(new InvalidConditionException(context,"elseif",elseifCondition));
-                }
+                    Errors.Add(new InvalidConditionException(context, "elseif", elseifCondition));
             }
 
             return base.VisitIfStatement(context);
         }
 
-        private void DeclareLocalVariable(string name, ParserRuleContext variableContext, ObjectType type, Lazy<object> valueResolver, bool isEnumerationVariable = false, bool isIterationVariable = false)
+        private void DeclareLocalVariable(string name, ParserRuleContext variableContext, ObjectType type,
+            Lazy<object> valueResolver, bool isEnumerationVariable = false, bool isIterationVariable = false)
         {
             _current.LocalVariables.Add(new Variable
             {
                 Name = name,
                 Type = type,
                 Value = valueResolver,
-                IsEnumerationVariable = isEnumerationVariable, 
+                IsEnumerationVariable = isEnumerationVariable,
                 IsIterationVariable = isIterationVariable, //if true, prevent changes to the variable
                 Context = variableContext
             });
         }
 
-        private void DeclareLocalVariable(string name, ParserRuleContext variableContext, ParserRuleContext valueContext, bool isEnumerationVariable = false, bool isIterationVariable = false)
+        private void DeclareLocalVariable(string name, ParserRuleContext variableContext,
+            ParserRuleContext valueContext, bool isEnumerationVariable = false, bool isIterationVariable = false)
         {
-            var type = _typeInferenceVisitor.Visit(valueContext);
+            var type = TypeInferenceVisitor.Visit(valueContext);
             _current.LocalVariables.Add(new Variable
             {
                 Name = name,
                 Type = type,
-                IsEnumerationVariable = isEnumerationVariable, 
+                IsEnumerationVariable = isEnumerationVariable,
                 IsIterationVariable = isIterationVariable,
                 Context = variableContext,
-                Value = _valueResolverVisitor.Visit(valueContext)
+                Value = ValueResolverVisitor.Visit(valueContext)
             });
         }
 
         //to be used by TypeInferenceVisitor
-        internal Variable GetVariableFromCurrentEnvironment(string name) => _current.GetVariable(name);
+        internal Variable GetVariableFromCurrentEnvironment(string name)
+        {
+            return _current.GetVariable(name);
+        }
 
         private void RecordErrorIfUndefined(ParserRuleContext context, string variable)
         {

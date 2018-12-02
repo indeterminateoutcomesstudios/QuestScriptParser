@@ -14,14 +14,15 @@ namespace QuestScript.Interpreter.Extensions
             LazyTypeAccessor = TypeAccessor.Create(typeof(Lazy<object>));
         }
 
-        public static string CleanTokenArtifacts(this string str) => str.Replace("\"", string.Empty);
-
-        public static void EnsureKey<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key, Func<TValue> newValueFactory)
+        public static string CleanTokenArtifacts(this string str)
         {
-            if (dict.ContainsKey(key) == false)
-            {
-                dict.Add(key, newValueFactory());
-            }
+            return str.Replace("\"", string.Empty);
+        }
+
+        public static void EnsureKey<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key,
+            Func<TValue> newValueFactory)
+        {
+            if (dict.ContainsKey(key) == false) dict.Add(key, newValueFactory());
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -29,7 +30,7 @@ namespace QuestScript.Interpreter.Extensions
         {
             while (true)
             {
-                if (!(valueOrLazy is Lazy<object>)) 
+                if (!(valueOrLazy is Lazy<object>))
                     return valueOrLazy;
                 valueOrLazy = LazyTypeAccessor[valueOrLazy, "Value"];
             }

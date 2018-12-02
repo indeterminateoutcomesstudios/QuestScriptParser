@@ -15,9 +15,10 @@ namespace QuestScript.Interpreter.Helpers
             _source = source;
         }
 
+        public IReadOnlyCollection<IToken> CommentTokens => _commentTokens;
+
         public IToken NextToken()
         {
-
             var next = _source.NextToken();
             //collect the tokens, but don't send them to parser
             while (next.Type == QuestScriptLexer.Comment ||
@@ -26,11 +27,9 @@ namespace QuestScript.Interpreter.Helpers
                 _commentTokens.Add(next);
                 next = _source.NextToken();
             }
-            
+
             return next;
         }
-
-        public IReadOnlyCollection<IToken> CommentTokens => _commentTokens;
 
         public int Line => _source.Line;
         public int Column => _source.Column;

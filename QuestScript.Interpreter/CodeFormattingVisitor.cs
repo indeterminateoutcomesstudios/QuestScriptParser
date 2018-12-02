@@ -9,9 +9,9 @@ namespace QuestScript.Interpreter
     //TODO: figure out how NOT to delete comments (currently they are output to HIDDEN channel by the lexer)
     public class CodeFormattingVisitor : QuestScriptBaseVisitor<bool>
     {
+        private readonly StringBuilder _output = new StringBuilder();
         private int _currentIndentation;
         private string Whitespaces => new string(' ', _currentIndentation);
-        private readonly StringBuilder _output = new StringBuilder();
         public string Output => _output.ToString();
 
         public override bool VisitStatement(QuestScriptParser.StatementContext context)
@@ -27,13 +27,10 @@ namespace QuestScript.Interpreter
         {
             _output.Append("switch (");
             context.switchConditionStatement.Accept(this);
-            _output.AppendFormat("){0}{{{0}",Environment.NewLine);
+            _output.AppendFormat("){0}{{{0}", Environment.NewLine);
             _currentIndentation++;
 
-            foreach (var caseStatement in context._cases)
-            {
-                caseStatement.Accept(this);
-            }
+            foreach (var caseStatement in context._cases) caseStatement.Accept(this);
 
             context.defaultContext?.Accept(this);
 
@@ -45,16 +42,12 @@ namespace QuestScript.Interpreter
 
         public override bool VisitCaseStatement(QuestScriptParser.CaseStatementContext context)
         {
-            _output.AppendFormat("{1}case ({0}", context.caseValue.GetText(),Whitespaces);
+            _output.AppendFormat("{1}case ({0}", context.caseValue.GetText(), Whitespaces);
 
             if (context.code.codeBlockStatement() == null)
-            {
                 _output.AppendFormat("){0}{1}", Environment.NewLine, Whitespaces);
-            }
             else
-            {
                 _output.AppendFormat("){0}", Whitespaces);
-            }
 
             context.code.Accept(this);
 
@@ -65,13 +58,9 @@ namespace QuestScript.Interpreter
         {
             _output.AppendFormat("{0}default", Whitespaces);
             if (context.code.codeBlockStatement() == null)
-            {
                 _output.AppendFormat("{0}{1}", Environment.NewLine, Whitespaces);
-            }
             else
-            {
                 _output.Append(Whitespaces);
-            }
 
             context.code.Accept(this);
             return true;
@@ -82,17 +71,12 @@ namespace QuestScript.Interpreter
             _output.Append("if(");
             context.condition.Accept(this);
             if (context.ifCode.codeBlockStatement() == null)
-            {
                 _output.AppendFormat("){0}{1}", Environment.NewLine, Whitespaces);
-            }
             else
-            {
                 _output.AppendFormat("){0}", Whitespaces);
-            }
             context.ifCode.Accept(this);
 
             if (context._elseIfCodes.Count > 0)
-            {
                 for (var i = 0; i < context._elseIfCodes.Count; i++)
                 {
                     var ifElseCondition = context._elseifConditions[i];
@@ -102,30 +86,20 @@ namespace QuestScript.Interpreter
                     ifElseCondition.Accept(this);
 
                     if (ifElseCode.codeBlockStatement() == null)
-                    {
                         _output.AppendFormat("){0}{1}", Environment.NewLine, Whitespaces);
-                    }
                     else
-                    {
                         _output.AppendFormat("){0}", Whitespaces);
-                    }
 
                     ifElseCode.Accept(this);
-
                 }
-            }
 
             if (context.elseCode != null)
             {
                 _output.AppendFormat("{0}else", Whitespaces);
                 if (context.elseCode.codeBlockStatement() == null)
-                {
                     _output.AppendFormat("{0}{1}", Environment.NewLine, Whitespaces);
-                }
                 else
-                {
                     _output.AppendFormat("{0}", Whitespaces);
-                }
                 context.elseCode.Accept(this);
             }
 
@@ -199,10 +173,7 @@ namespace QuestScript.Interpreter
         {
             _output.AppendFormat("{1}{0}{{{1}", Whitespaces, Environment.NewLine);
             _currentIndentation++;
-            foreach (var ctx in context._statements)
-            {
-                ctx.Accept(this);
-            }
+            foreach (var ctx in context._statements) ctx.Accept(this);
 
             _currentIndentation--;
             _output.AppendFormat("{0}}}", Whitespaces);
@@ -211,9 +182,9 @@ namespace QuestScript.Interpreter
 
         public override bool VisitChildren(IRuleNode node)
         {
-            int childCount = node.ChildCount;
+            var childCount = node.ChildCount;
             var _ = true;
-            for (int i = 0; i < childCount && ShouldVisitNextChild(node, _); ++i)
+            for (var i = 0; i < childCount && ShouldVisitNextChild(node, _); ++i)
             {
                 var child = node.GetChild(i);
                 if (child.ChildCount == 0)
@@ -227,6 +198,7 @@ namespace QuestScript.Interpreter
                     child.Accept(this);
                 }
             }
+
             return true;
         }
     }

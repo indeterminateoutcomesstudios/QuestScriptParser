@@ -5,13 +5,8 @@ namespace QuestScript.Interpreter.Exceptions
 {
     public class BaseInterpreterException : Exception, IEquatable<BaseInterpreterException>
     {
-        public ParserRuleContext Context { get; }
-        public int Line { get; }
-        public int Column { get; }
-
-
         public BaseInterpreterException(ParserRuleContext ctx, string msg)
-            :base(msg ?? string.Empty)
+            : base(msg ?? string.Empty)
         {
             Context = ctx;
             Line = ctx.start.Line;
@@ -19,18 +14,23 @@ namespace QuestScript.Interpreter.Exceptions
         }
 
         public BaseInterpreterException(ParserRuleContext ctx, string msg, Exception inner)
-            :base(msg ?? string.Empty,inner)
+            : base(msg ?? string.Empty, inner)
         {
             Context = ctx;
             Line = ctx.start.Line;
             Column = ctx.start.Column;
         }
 
+        public ParserRuleContext Context { get; }
+        public int Line { get; }
+        public int Column { get; }
+
         public bool Equals(BaseInterpreterException other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
-            return Line == other.Line && Column == other.Column && Message.Equals(other.Message,StringComparison.InvariantCulture);
+            return Line == other.Line && Column == other.Column &&
+                   Message.Equals(other.Message, StringComparison.InvariantCulture);
         }
 
         public override bool Equals(object obj)

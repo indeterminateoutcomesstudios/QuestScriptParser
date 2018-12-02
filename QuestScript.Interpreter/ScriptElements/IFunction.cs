@@ -5,7 +5,7 @@ namespace QuestScript.Interpreter.ScriptElements
 {
     public interface IFunction
     {
-        ObjectType ReturnType { get; }    
+        ObjectType ReturnType { get; }
         IReadOnlyCollection<string> Parameters { get; }
         HashSet<BaseInterpreterException> Errors { get; }
         object Call();

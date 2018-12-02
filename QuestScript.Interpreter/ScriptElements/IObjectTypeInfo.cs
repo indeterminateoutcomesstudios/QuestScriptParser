@@ -9,6 +9,5 @@ namespace QuestScript.Interpreter.ScriptElements
 
         IReadOnlyList<IObjectInstance> Attributes { get; }
         IReadOnlyList<IDelegate> Delegates { get; }
-
     }
 }

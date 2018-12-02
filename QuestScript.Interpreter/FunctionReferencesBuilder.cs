@@ -23,6 +23,9 @@ namespace QuestScript.Interpreter
             return _references;
         }
 
-        public void Reset() => _references.Clear();
+        public void Reset()
+        {
+            _references.Clear();
+        }
     }
 }

@@ -9,8 +9,17 @@ namespace QuestScript.Tryouts
     {
         private readonly List<ObjectInstanceInfo> _attributes;
 
+        public ObjectInstanceInfo(string name, ObjectType type, string typeName,
+            List<ObjectInstanceInfo> attributes = null)
+        {
+            _attributes = attributes ?? new List<ObjectInstanceInfo>();
+            Name = name;
+            Type = type;
+            TypeName = typeName;
+        }
+
         public string Name { get; set; }
-        
+
         public Func<object> ValueResolver => () => new ExpandoObject();
 
         public ObjectType Type { get; set; }
@@ -18,14 +27,7 @@ namespace QuestScript.Tryouts
 
         public IReadOnlyList<IObjectInstance> Attributes => _attributes;
 
-        public IReadOnlyList<IDelegate> Delegates => throw new NotSupportedException("TODO : implement testing IDelegate object");
-
-        public ObjectInstanceInfo(string name, ObjectType type, string typeName, List<ObjectInstanceInfo> attributes = null)
-        {
-            _attributes = attributes ?? new List<ObjectInstanceInfo>();
-            Name = name;
-            Type = type;
-            TypeName = typeName;
-        }
+        public IReadOnlyList<IDelegate> Delegates =>
+            throw new NotSupportedException("TODO : implement testing IDelegate object");
     }
 }
