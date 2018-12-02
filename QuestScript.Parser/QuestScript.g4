@@ -20,7 +20,7 @@ statement
     |   breakStatement
     |   returnStatement
 	|	switchCaseStatement
-	|	{ _input.La(1) == QuestScriptLexer.PlusPlus }? postfixUnaryStatement
+	|	{ _input.La(1) == QuestScriptLexer.PlusPlus || _input.La(1) == QuestScriptLexer.MinusMinus}? postfixUnaryStatement
 	|   memberMethodStatement
     ;
 
