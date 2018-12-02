@@ -1,8 +1,23 @@
 grammar QuestScript;
 
-@lexer::members
+@parser::header{
+using System;
+}
+
+@parser::members{
+public Dictionary<string,HashSet<string>> ObjectFields = new Dictionary<string,HashSet<string>>(StringComparer.InvariantCultureIgnoreCase);
+public Dictionary<string,(string name, HashSet<string> parameters)> ObjectMethods = new Dictionary<string,(string name, HashSet<string> parameters)>(StringComparer.InvariantCultureIgnoreCase);
+
+//value here is the parameters of the function
+public Dictionary<string,(HashSet<string> parameters, string returnType)> Functions = new Dictionary<string,(HashSet<string> parameters, string returnType)>(StringComparer.InvariantCultureIgnoreCase);
+
+
+private bool IsField(string instance, string fieldName)
 {
-	int nesting = 0;
+    var isObjectDefined = ObjectFields.TryGetValue(instance, out var fields);
+    return isObjectDefined && fields.Contains(fieldName);
+}
+
 }
 
 script: (statement)* EOF;
@@ -103,11 +118,12 @@ expression:
     ;
 
 rValue:
-       expr = functionStatement    #FunctionOperand
-     | literal					   #LiteralOperand
+       
+       literal					   #LiteralOperand
      | ('-')? literal              #NegativeLiteralOperand
      | lValue					   #VariableOperand
      | ('-')? lValue			   #NegativeVariableOperand
+     | expr = functionStatement    #FunctionOperand
     ;
 
 lValue
@@ -138,8 +154,6 @@ additiveOp:
     |   '-'     #MinusOp
 	;
 
-arithmeticOp: multiplicativeOp | additiveOp;
-
 literal:
 	  IntegerLiteral #IntegerLiteral
 	| DoubleLiteral  #DoubleLiteral
@@ -148,10 +162,10 @@ literal:
 	| BooleanLiteral #BooleanLiteral
 	;
 
-LeftParen : '(' {nesting++;} ;
-RightParen : ')' {nesting--;} ;
-LeftBracket : '[' {nesting++;} ;
-RightBracket : ']' {nesting--;} ;
+LeftParen : '(';
+RightParen : ')';
+LeftBracket : '[';
+RightBracket : ']';
 
 PlusPlus: '++';
 MinusMinus: '--';

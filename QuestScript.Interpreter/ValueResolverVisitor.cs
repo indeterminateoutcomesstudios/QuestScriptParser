@@ -29,7 +29,23 @@ namespace QuestScript.Interpreter
             return new Lazy<object>(() =>
             {
                 var variable = _scriptEnvironmentBuilder.GetVariableFromCurrentEnvironment(context.GetText());
-                return variable != null ? variable.Value : null;
+                if (variable == null)
+                    return null;
+                if ((variable.Type != ObjectType.Integer && variable.Type != ObjectType.Double) ||
+                    (!context.HasParentOfType<QuestScriptParser.NegativeLiteralOperandContext>() &&
+                     !context.HasParentOfType<QuestScriptParser.NegativeVariableOperandContext>()))
+                    return variable.Value;
+
+                switch (variable.Type)
+                {
+                    //TODO: make sure negation here works properly
+                    case ObjectType.Integer:
+                        return (object) ((int) variable.Value.GetValueOrLazyValue() * -1);
+                    case ObjectType.Double:
+                        return (object) ((double) variable.Value.GetValueOrLazyValue() * -1);
+                    default:
+                        return variable.Value;
+                }
             });
         }
 
