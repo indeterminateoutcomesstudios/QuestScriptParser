@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
 using Antlr4.Runtime;
 using QuestScript.Interpreter.Exceptions;
-using QuestScript.Interpreter.Extensions;
 using QuestScript.Interpreter.Helpers;
 using QuestScript.Interpreter.ScriptElements;
 using QuestScript.Parser;
@@ -13,13 +14,10 @@ using QuestScript.Parser;
 
 namespace QuestScript.Interpreter
 {
-    public class GameObjectResolverVisitor : QuestGameParserBaseVisitor<bool>
+    public class GameObjectResolver
     {
         private static readonly QuestScriptLexer ScriptLexer = new QuestScriptLexer(null);
         private static readonly QuestScriptParser ScriptParser = new QuestScriptParser(null);
-
-        private static readonly QuestGameLexer QuestGameLexer = new QuestGameLexer(null);
-        private static readonly QuestGameParser QuestGameParser = new QuestGameParser(null);
 
         private static readonly string QuestCoreLibrariesPath;
         private static readonly string QuestLanguageLibrariesPath;
@@ -27,6 +25,8 @@ namespace QuestScript.Interpreter
         private readonly List<FunctionDefinition> _functionDefinitions = new List<FunctionDefinition>();
         private readonly Dictionary<string, HashSet<string>> _functionReferences = new Dictionary<string, HashSet<string>>();
         private readonly FunctionReferencesBuilder _referenceBuilder = new FunctionReferencesBuilder();
+
+        private readonly XDocument _gameFile;
 
         private readonly Stack<string> _currentFile = new Stack<string>();
 
@@ -38,37 +38,60 @@ namespace QuestScript.Interpreter
 
         public GameFileType Type { get; private set; }
 
-        static GameObjectResolverVisitor()
+        static GameObjectResolver()
         {
             QuestCoreLibrariesPath = Path.Combine(EnvironmentUtil.GetQuestInstallationPath(), "Core");
             QuestLanguageLibrariesPath = Path.Combine(QuestCoreLibrariesPath, "Languages");
         }
 
-        public override bool VisitElement(QuestGameParser.ElementContext context)
+        public GameObjectResolver(string questFile)
         {
-            if (string.IsNullOrWhiteSpace(context.ElementName?.Text)) //precaution
-                return false;
-            switch (context.ElementName.Text)
+            _gameFile = XDocument.Load(questFile);
+
+            if(_gameFile.Root == null)
+                throw new ArgumentException("ASLX game file should not be empty...",nameof(questFile));
+
+            InferFileType();
+            ProcessReferences();
+            ProcessFunctionDefinitions();
+        }
+
+        private void ProcessFunctionDefinitions()
+        {
+            foreach (var functionElement in _gameFile.Root?.Elements("function") ?? Enumerable.Empty<XElement>())
             {
-                case "include":
-                    VisitInclude(context);
+                ProcessFunction(functionElement);
+            }
+        }
+
+        private void ProcessReferences()
+        {
+            foreach (var element in (_gameFile.Root?.Elements("include") ?? Enumerable.Empty<XElement>())
+                .Where(el => el.HasAttributes && el.FirstAttribute.Name == "ref"))
+            {
+                var library = element.Attribute("ref")?.Value;
+                References.Add(library);
+                ProcessIncludedLibraryAndMerge(library);
+            }
+        }
+
+        private void InferFileType()
+        {
+            switch (_gameFile?.Root?.Name.LocalName)
+            {
+                case "asl":
+                    Type = GameFileType.Game;
                     break;
                 case "library":
                     Type = GameFileType.Library;
                     break;
-                case "function":
-                    VisitFunction(context);
-                    break;
-                case "asl":
-                    Type = GameFileType.Game;
-                    break;
             }
-
-            return base.VisitElement(context);
         }
 
         private void ProcessIncludedLibraryAndMerge(string library)
         {
+            if (library == null)
+                return;
             var libraryPath = Path.Combine(QuestCoreLibrariesPath, library);
             if (File.Exists(libraryPath) == false)
             {
@@ -84,31 +107,25 @@ namespace QuestScript.Interpreter
                 if (File.Exists(alternativeLibraryPath) == false)
                 {
                     throw new FileNotFoundException(
-                        $"Couldn't find referenced libary '{library}'. Tried looking in paths '{libraryPath}' and '{alternativeLibraryPath}'.");
+                        $"Couldn't find referenced library '{library}'. Tried looking in paths '{libraryPath}' and '{alternativeLibraryPath}'.");
                 }
 
                 libraryPath = alternativeLibraryPath;
             }
 
             _currentFile.Push(libraryPath);
-            var inputStream = new AntlrFileStream(libraryPath);
-            QuestGameLexer.SetInputStream(inputStream);
-            QuestGameParser.SetInputStream(new CommonTokenStream(QuestGameLexer));
+            var includeLibraryResolver = new GameObjectResolver(libraryPath);
 
-            var includeLibraryVisitor = new GameObjectResolverVisitor();
-            var parsedTree = QuestGameParser.game();
-            includeLibraryVisitor.Visit(parsedTree);
-
-            foreach (var reference in includeLibraryVisitor.References)
+            foreach (var reference in includeLibraryResolver.References)
             {
                 ProcessIncludedLibraryAndMerge(reference);
             }
 
-            MergeWith(includeLibraryVisitor);
+            MergeWith(includeLibraryResolver);
             _currentFile.Pop();
         }
 
-        private void MergeWith(GameObjectResolverVisitor otherVisitor)
+        private void MergeWith(GameObjectResolver otherVisitor)
         {
             _functionDefinitions.AddRange(otherVisitor._functionDefinitions);
             //TODO: add here other stuff that the visitor parses
@@ -116,26 +133,37 @@ namespace QuestScript.Interpreter
 
 
 
-        private void VisitFunction(QuestGameParser.ElementContext context)
+        private void ProcessFunction(XElement function)
         {
-            if (!context.TryGetAttributeByName("name", out var nameAttribute))
+            var functionName = function.Attributes().FirstOrDefault(x => x.Name.LocalName == "name")?.Value;
+            if (string.IsNullOrWhiteSpace(functionName))
             {
-                ThrowMissingAttribute(context, "name");
+                ThrowMissingAttribute(function, "name");
             }
 
-            var functionName = nameAttribute.Value;
-            var functionImplementation = context.content().GetText();
-            var parameters = new List<string>();
-            if (context.TryGetAttributeByName("parameters", out var parameterList))
+            if (string.IsNullOrWhiteSpace(functionName))
             {
-                parameters.AddRange(parameterList.Value.Split(','));
+                throw new ArgumentException($"Failed to process function definition, because function name is null. (definition: ${function})");
+            }
+
+            var functionImplementation = function.Value;
+
+            if (string.IsNullOrWhiteSpace(functionImplementation))
+                return; //nothing to do, precaution, should never happen. Perhaps throw here?
+
+            var parameters = new List<string>();
+            var functionParameters = function.Attributes().FirstOrDefault(x => x.Name.LocalName == "parameters")?.Value;
+            if (!string.IsNullOrWhiteSpace(functionParameters))
+            {
+                parameters.AddRange(functionParameters.Split(','));
             }
 
             var returnType = ObjectType.Void;
 
-            if (context.TryGetAttributeByName("type", out var returnTypeAttribute))
+            var returnTypeAttribute = function.Attributes().FirstOrDefault(x => x.Name.LocalName == "type")?.Value;
+            if (!string.IsNullOrWhiteSpace(returnTypeAttribute))
             {
-                returnType = TypeUtil.TryParse(returnTypeAttribute.Value, out returnType)
+                returnType = TypeUtil.TryParse(returnTypeAttribute, out returnType)
                     ? returnType
                     : ObjectType.Unknown;
             }
@@ -148,6 +176,11 @@ namespace QuestScript.Interpreter
                 ReturnType = returnType
             };
             _functionDefinitions.Add(newDefinition);
+
+            if (functionName == "ChangePOV")
+            {
+                Debugger.Break();
+            }
 
             ScriptLexer.SetInputStream(new AntlrInputStream(newDefinition.Implementation));
             ScriptParser.SetInputStream(new CommonTokenStream(ScriptLexer));
@@ -164,30 +197,18 @@ namespace QuestScript.Interpreter
             ScriptParser.AddErrorListener(new ParseErrorGatherer(errors));
 
             var parseTree = ScriptParser.script();
-            _referenceBuilder.Reset();
-            _functionReferences.Add(newDefinition.Name, _referenceBuilder.Visit(parseTree));
-        }
 
-        private void VisitInclude(QuestGameParser.ElementContext context)
-        {
-            if (!context.TryGetAttributeByName("ref", out var attr))
-            {
-                ThrowMissingAttribute(context, "ref");
-            }
-
-            References.Add(attr.Value);
-
-            if (attr.Value == "CoreFunctions.aslx")
+            if(errors.Count > 0)
                 Debugger.Break();
 
-            ProcessIncludedLibraryAndMerge(attr.Value);
-        }
+            _referenceBuilder.Reset();
+            _functionReferences.Add(newDefinition.Name, _referenceBuilder.Visit(parseTree));
+        }    
 
-        private static void ThrowMissingAttribute(QuestGameParser.ElementContext context, string attribute)
+        private static void ThrowMissingAttribute(XElement element, string attribute)
         {
             throw new InvalidDataException(
-                $"Found <{context.ElementName.Text}> element, but didn't find '{attribute}' attribute. This should not happen, and it is likely this ASLX game file is corrupted. The element I found is : " +
-                context.GetText());
+                $"Found <{element}> element, but didn't find '{attribute}' attribute. This should not happen, and it is likely this ASLX game file is corrupted.");
         }
 
         public class FunctionDefinition

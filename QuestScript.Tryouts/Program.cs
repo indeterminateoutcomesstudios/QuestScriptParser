@@ -13,12 +13,7 @@ namespace QuestScript.Tryouts
         static void Main(string[] args)
         {         
 
-            var questGameLexer = new QuestGameLexer(new AntlrFileStream(@"C:\Users\Admin\Documents\Quest Games\BasicNeedsLib\TestGame.aslx"));
-            var questGameParser = new QuestGameParser(new CommonTokenStream(questGameLexer));
-
-            var questGameTree = questGameParser.game();
-            var gameObjectResolver = new GameObjectResolverVisitor();
-            gameObjectResolver.Visit(questGameTree);
+            var gameObjectResolver = new GameObjectResolver(@"C:\Users\Admin\Documents\Quest Games\BasicNeedsLib\TestGame.aslx");
             ////Console.WriteLine(questGameTree.ToStringTree(questGameParser));
             Console.ReadKey();
         }

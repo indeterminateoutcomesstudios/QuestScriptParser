@@ -202,7 +202,7 @@
     <Compile Include="Exceptions\BaseParserErrorException.cs" />
     <Compile Include="Exceptions\SyntaxErrorException.cs" />
     <Compile Include="FunctionReferencesBuilder.cs" />
-    <Compile Include="GameObjectResolverVisitor.cs" />
+    <Compile Include="GameObjectResolver.cs" />
     <Compile Include="ParseErrorGatherer.cs" />
     <Compile Include="ScriptEnvironment.cs" />
     <Compile Include="Extensions\EnvironmentExtensions.cs" />
