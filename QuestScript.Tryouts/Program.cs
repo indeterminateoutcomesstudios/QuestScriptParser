@@ -13,7 +13,7 @@ namespace QuestScript.Tryouts
         static void Main(string[] args)
         {         
 
-            var gameObjectResolver = new GameObjectResolver(@"C:\Users\Admin\Documents\Quest Games\BasicNeedsLib\TestGame.aslx");
+            var gameObjectResolver = new GameObjectResolver(@"C:\Program Files (x86)\Quest 5\Core\CoreFunctions.aslx");
             ////Console.WriteLine(questGameTree.ToStringTree(questGameParser));
             Console.ReadKey();
         }

@@ -49,7 +49,8 @@ namespace QuestScript.Interpreter
 
         public GameObjectResolver(string questFile)
         {
-            _gameFile = XDocument.Load(questFile);
+            using(var file = File.Open(questFile,FileMode.Open))
+                _gameFile = XDocument.Load(file);
 
             if(_gameFile.Root == null)
                 throw new ArgumentException("ASLX game file should not be empty...",nameof(questFile));
@@ -174,7 +175,7 @@ namespace QuestScript.Interpreter
             {
                 Name = functionName,
                 Parameters = parameters,
-                Implementation = Regex.Unescape(functionImplementation),
+                Implementation = functionImplementation,
                 ReturnType = returnType
             };
             _functionDefinitions.Add(newDefinition);
