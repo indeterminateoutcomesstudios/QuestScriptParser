@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
+using System.Xml;
 using System.Xml.Linq;
+using System.Xml.XPath;
 using Antlr4.Runtime;
 using QuestScript.Interpreter.Exceptions;
 using QuestScript.Interpreter.Helpers;
@@ -131,8 +134,7 @@ namespace QuestScript.Interpreter
             //TODO: add here other stuff that the visitor parses
         }
 
-
-
+      
         private void ProcessFunction(XElement function)
         {
             var functionName = function.Attributes().FirstOrDefault(x => x.Name.LocalName == "name")?.Value;
@@ -167,7 +169,7 @@ namespace QuestScript.Interpreter
                     ? returnType
                     : ObjectType.Unknown;
             }
-
+            
             var newDefinition = new FunctionDefinition
             {
                 Name = functionName,
@@ -176,11 +178,6 @@ namespace QuestScript.Interpreter
                 ReturnType = returnType
             };
             _functionDefinitions.Add(newDefinition);
-
-            if (functionName == "ChangePOV")
-            {
-                Debugger.Break();
-            }
 
             ScriptLexer.SetInputStream(new AntlrInputStream(newDefinition.Implementation));
             ScriptParser.SetInputStream(new CommonTokenStream(ScriptLexer));
