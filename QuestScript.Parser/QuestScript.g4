@@ -4,6 +4,12 @@ grammar QuestScript;
 using System;
 }
 
+@lexer::members{
+private bool _isInsideSwitch = false;
+private int _switchBracerIndentation = 0;
+private bool _isInsideSwitchCodeBlock = false;
+}
+
 @parser::members{
 public Dictionary<string,HashSet<string>> ObjectFields = new Dictionary<string,HashSet<string>>(StringComparer.InvariantCultureIgnoreCase);
 public Dictionary<string,(string name, HashSet<string> parameters)> ObjectMethods = new Dictionary<string,(string name, HashSet<string> parameters)>(StringComparer.InvariantCultureIgnoreCase);
@@ -46,8 +52,8 @@ switchCaseStatement:
 		defaultContext = defaultStatement?
 	'}';
 
-caseStatement : 'case' LeftParen caseValue = literal RightParen code = statement;
-defaultStatement : 'default' code = statement;
+caseStatement : Case LeftParen caseValue = literal RightParen code = statement;
+defaultStatement : Default code = statement;
 
 returnStatement: 'return' (LeftParen expression? RightParen)?;
 
@@ -162,10 +168,43 @@ literal:
 	| BooleanLiteral #BooleanLiteral
 	;
 
+Switch: 'switch' { _isInsideSwitch = true; };
+Case: { _isInsideSwitch && !_isInsideSwitchCodeBlock }? 'case';
+Default: { _isInsideSwitch && !_isInsideSwitchCodeBlock }? 'default';
+
+Identifier: (Letter | '_') (Letter | Digit | '_')*;
+
+
 LeftParen : '(';
 RightParen : ')';
 LeftBracket : '[';
 RightBracket : ']';
+
+LeftCurly: '{' 
+{ 
+	if (_isInsideSwitch) 
+	{ 
+		if(_switchBracerIndentation >= 1)
+		{
+			_isInsideSwitchCodeBlock = true; 
+		}
+		_switchBracerIndentation++; 
+	}
+};
+
+RightCurly: '}'
+{ 
+	if (_isInsideSwitch) 
+	{ 
+		if(_switchBracerIndentation >= 1)
+		{
+			_isInsideSwitchCodeBlock = false; 
+		}
+		_switchBracerIndentation--; 
+		if(_switchBracerIndentation == 0) 
+			_isInsideSwitch = false; 
+	} 
+};
 
 PlusPlus: '++';
 MinusMinus: '--';
@@ -180,20 +219,6 @@ IntegerLiteral: Digit+;
 
 NullLiteral: 'null';
 BooleanLiteral: 'true' | 'false';
-
-Keyword:
-        'finish'
-    |   'firsttime'
-    |   'for'
-    |   'foreach'
-    |   'if'
-    |   'return'
-    |   'switch'
-    |   'case'
-    |   'default'
-    |   'while'
-    |   'undo'
-    ;
 
 SpecialFunctionName:
         'get input'
@@ -220,10 +245,6 @@ SpecialFunctionName:
     |   'SetTurnTimeoutID'
     ;
 
-//Continue: 'continue';
-Break: 'break';
-
-Identifier: (Letter | '_') (Letter | Digit | '_')*;
 
 fragment AnyCharacterExceptSpecial : ~["\\\r\n\u0085\u2028\u2029];
 fragment EscapeSequence : '\\' ['"?abfnrtv\\];
