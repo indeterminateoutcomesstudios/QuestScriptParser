@@ -38,7 +38,6 @@ statement
     |   scriptAssignmentStatement
     |   firsttimeStatement //special case of syntax
     |   iterationStatement
-    |   breakStatement
     |   returnStatement
 	|	switchCaseStatement
 	|	{ _input.La(1) == QuestScriptLexer.PlusPlus || _input.La(1) == QuestScriptLexer.MinusMinus}? postfixUnaryStatement
@@ -46,18 +45,16 @@ statement
     ;
 
 switchCaseStatement:
-	'switch' LeftParen switchConditionStatement = expression RightParen
-	'{'
+	Switch LeftParen switchConditionStatement = expression RightParen
+	LeftCurly
 		cases += caseStatement*
 		defaultContext = defaultStatement?
-	'}';
+	RightCurly;
 
 caseStatement : Case LeftParen caseFirstValue = literal (',' caseOtherValues += literal)* RightParen code = statement;
 defaultStatement : Default code = statement;
 
 returnStatement: 'return' (LeftParen expression? RightParen)?;
-
-breakStatement: Break;
 
 iterationStatement
     :
@@ -153,7 +150,7 @@ multiplicativeOp:
     |   '%'     #ModOp
     |   '*'     #ModOp
     ;
-
+ 
 additiveOp:
         '+'     #PlusOp
     |   '-'     #MinusOp

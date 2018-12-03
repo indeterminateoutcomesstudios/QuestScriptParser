@@ -12,7 +12,8 @@ namespace QuestScript.Tryouts
         {
             //var parser = new QuestScriptParser(new CommonTokenStream(new QuestScriptLexer(new AntlrInputStream("x = default switch(a) { case(1) { x = default }  default { default = x }} x = default x = default switch(a) { case(1) { x = default }  default { default = x }} x = default x = default switch(a) { case(1) { x = default }  default { default = x }} x = default"))));
             //Console.WriteLine(parser.script().ToStringTree(parser));
-            var gameObjectResolver = new GameObjectResolver(@"C:\Users\Admin\Documents\Quest Games\BasicNeedsLib\TestGame.aslx");
+            //var gameObjectResolver = new GameObjectResolver(@"C:\Users\Admin\Documents\Quest Games\BasicNeedsLib\TestGame.aslx");
+            var gameObjectResolver = new GameObjectResolver(@"C:\Program Files (x86)\Quest 5\Core\CoreDevMode.aslx");
             Console.ReadKey();
         }
     }

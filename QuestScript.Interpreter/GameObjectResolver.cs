@@ -21,7 +21,6 @@ namespace QuestScript.Interpreter
 
         private static readonly string QuestCoreLibrariesPath;
         private static readonly string QuestLanguageLibrariesPath;
-
         private readonly Stack<string> _currentFile = new Stack<string>();
 
         private readonly List<FunctionDefinition> _functionDefinitions = new List<FunctionDefinition>();
@@ -32,14 +31,18 @@ namespace QuestScript.Interpreter
         private readonly XDocument _gameFile;
         private readonly FunctionReferencesBuilder _referenceBuilder = new FunctionReferencesBuilder();
 
+        internal readonly HashSet<string> AlreadyLoadedFiles;
+
         static GameObjectResolver()
         {
             QuestCoreLibrariesPath = Path.Combine(EnvironmentUtil.GetQuestInstallationPath(), "Core");
             QuestLanguageLibrariesPath = Path.Combine(QuestCoreLibrariesPath, "Languages");
         }
 
-        public GameObjectResolver(string questFile)
+        public GameObjectResolver(string questFile, HashSet<string> alreadyLoadedFiles = null)
         {
+            AlreadyLoadedFiles = alreadyLoadedFiles ?? new HashSet<string>();
+
             using (var file = File.Open(questFile, FileMode.Open))
                 _gameFile = XDocument.Load(file);
 
@@ -74,7 +77,13 @@ namespace QuestScript.Interpreter
             {
                 var library = element.Attribute("ref")?.Value;
                 References.Add(library);
-                ProcessIncludedLibraryAndMerge(library);
+
+                if (!AlreadyLoadedFiles.Contains(library))
+                {
+                    Console.WriteLine(library);
+                    AlreadyLoadedFiles.Add(library);
+                    ProcessIncludedLibraryAndMerge(library);
+                }
             }
         }
 
@@ -112,7 +121,8 @@ namespace QuestScript.Interpreter
             }
 
             _currentFile.Push(libraryPath);
-            var includeLibraryResolver = new GameObjectResolver(libraryPath);
+
+            var includeLibraryResolver = new GameObjectResolver(libraryPath, AlreadyLoadedFiles);           
 
             foreach (var reference in includeLibraryResolver.References) ProcessIncludedLibraryAndMerge(reference);
 
@@ -123,6 +133,9 @@ namespace QuestScript.Interpreter
         private void MergeWith(GameObjectResolver otherVisitor)
         {
             _functionDefinitions.AddRange(otherVisitor._functionDefinitions);
+            foreach (var filePath in otherVisitor.AlreadyLoadedFiles) //do not load the same files twice...
+                AlreadyLoadedFiles.Add(filePath);
+
             //TODO: add here other stuff that the visitor parses
         }
 
@@ -166,6 +179,7 @@ namespace QuestScript.Interpreter
             ScriptParser.SetInputStream(new CommonTokenStream(ScriptLexer));
 
             ScriptParser.RemoveErrorListeners();
+            ScriptParser.AddErrorListener(new ConsoleErrorListener<IToken>());
 
             var key = _currentFile.Count > 0 ? _currentFile.Peek() : "root";
             if (!ParserErrors.TryGetValue(key, out var errors))
