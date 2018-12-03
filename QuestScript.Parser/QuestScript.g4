@@ -52,7 +52,7 @@ switchCaseStatement:
 		defaultContext = defaultStatement?
 	'}';
 
-caseStatement : Case LeftParen caseValue = literal RightParen code = statement;
+caseStatement : Case LeftParen caseFirstValue = literal (',' caseOtherValues += literal)* RightParen code = statement;
 defaultStatement : Default code = statement;
 
 returnStatement: 'return' (LeftParen expression? RightParen)?;
@@ -110,25 +110,24 @@ memberMethodStatement: instance = expression '.' method = functionStatement;
 expression:
         rValue														#OperandExpression
     |   LeftParen expr = expression RightParen						#ParenthesizedExpression
+    |   '-' expr = expression                                       #NegatedExpression
     |   instance = expression '[' parameter = expression ']'		#IndexerExpression
     |   left = expression op = multiplicativeOp right = expression  #MultiplicativeExpression
     |   left = expression op = additiveOp right = expression		#AdditiveExpression
     |   expr = expression op = (PlusPlus|MinusMinus)				#PostfixUnaryExpression
 	|	expr = arrayLiteral											#ArrayLiteralExpression
-	|	'this'														#ThisExpression
 	|	instance = expression '.' method = functionStatement		#MemberMethodExpression
     |   left = expression op = relationalOp right = expression		#RelationalExpression
     |   Not expr = expression										#NotExpression
     |   left = expression And right = expression					#AndExpression
     |   left = expression Or right = expression						#OrExpression
+    |   val = expression 'in' source = expression                   #InExpression
     ;
 
 rValue:
        
-       literal					   #LiteralOperand
-     | ('-')? literal              #NegativeLiteralOperand
+        literal					   #LiteralOperand
      | lValue					   #VariableOperand
-     | ('-')? lValue			   #NegativeVariableOperand
      | expr = functionStatement    #FunctionOperand
     ;
 
@@ -167,12 +166,6 @@ literal:
 	| NullLiteral	 #NullLiteral
 	| BooleanLiteral #BooleanLiteral
 	;
-
-Switch: 'switch' { _isInsideSwitch = true; };
-Case: { _isInsideSwitch && !_isInsideSwitchCodeBlock }? 'case';
-Default: { _isInsideSwitch && !_isInsideSwitchCodeBlock }? 'default';
-
-Identifier: (Letter | '_') (Letter | Digit | '_')*;
 
 
 LeftParen : '(';
@@ -259,4 +252,10 @@ Whitespace: (' '|'\t') -> skip;
 Comment: '/*' .*? '*/' -> channel(HIDDEN);
 LineComment: '//' ~[\r\n]* -> channel(HIDDEN);
 Newline: '\r'? '\n' -> skip;
-//IgnoreNewline: '\r'? '\n' {nesting>0}? -> skip;
+
+
+Switch: 'switch' { _isInsideSwitch = true; };
+Case: { _isInsideSwitch && !_isInsideSwitchCodeBlock }? 'case';
+Default: { _isInsideSwitch && !_isInsideSwitchCodeBlock }? 'default';
+
+Identifier: (Letter | '_') (Letter | Digit | '_')*;

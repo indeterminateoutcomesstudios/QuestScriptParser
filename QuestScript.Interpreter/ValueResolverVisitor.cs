@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Antlr4.Runtime;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using QuestScript.Interpreter.Exceptions;
 using QuestScript.Interpreter.Extensions;
 using QuestScript.Interpreter.Helpers;
@@ -29,23 +30,31 @@ namespace QuestScript.Interpreter
             return new Lazy<object>(() =>
             {
                 var variable = _scriptEnvironmentBuilder.GetVariableFromCurrentEnvironment(context.GetText());
-                if (variable == null)
-                    return null;
-                if ((variable.Type != ObjectType.Integer && variable.Type != ObjectType.Double) ||
-                    (!context.HasParentOfType<QuestScriptParser.NegativeLiteralOperandContext>() &&
-                     !context.HasParentOfType<QuestScriptParser.NegativeVariableOperandContext>()))
-                    return variable.Value;
+                return variable != null ? variable.Value : null;
+            });
+        }
 
-                switch (variable.Type)
+        public override Lazy<object> VisitNegatedExpression(QuestScriptParser.NegatedExpressionContext context)
+        {
+            var instanceType = _scriptEnvironmentBuilder.TypeInferenceVisitor.Visit(context.expr);
+
+            if (instanceType != ObjectType.Double && instanceType != ObjectType.Integer)
+            {
+                Errors.Add(new UnexpectedTypeException(context, ObjectType.Double, instanceType, context.expr));
+                return new Lazy<object>(() => null);
+            }
+
+            if(instanceType == ObjectType.Double)
+                return new Lazy<object>(() =>
                 {
-                    //TODO: make sure negation here works properly
-                    case ObjectType.Integer:
-                        return (object) ((int) variable.Value.GetValueOrLazyValue() * -1);
-                    case ObjectType.Double:
-                        return (object) ((double) variable.Value.GetValueOrLazyValue() * -1);
-                    default:
-                        return variable.Value;
-                }
+                    var val = (double) Visit(context.expr).GetValueOrLazyValue();
+                    return -1.0 * val;
+                });
+
+            return new Lazy<object>(() =>
+            {
+                var val = (int) Visit(context.expr).GetValueOrLazyValue();
+                return -1 * val;
             });
         }
 

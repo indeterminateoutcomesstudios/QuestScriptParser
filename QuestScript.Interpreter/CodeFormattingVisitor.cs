@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Text;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
@@ -42,7 +43,7 @@ namespace QuestScript.Interpreter
 
         public override bool VisitCaseStatement(QuestScriptParser.CaseStatementContext context)
         {
-            _output.AppendFormat("{1}case ({0}", context.caseValue.GetText(), Whitespaces);
+            _output.AppendFormat("{2}case ({0} {1}", context.caseFirstValue.GetText(), string.Join(",", context._caseOtherValues?.Select(x => x.GetText()) ?? Enumerable.Empty<string>()), Whitespaces);
 
             if (context.code.codeBlockStatement() == null)
                 _output.AppendFormat("){0}{1}", Environment.NewLine, Whitespaces);
