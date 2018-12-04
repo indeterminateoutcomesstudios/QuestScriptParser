@@ -97,7 +97,7 @@ namespace QuestScript.Interpreter
                 .Where(x => !string.IsNullOrWhiteSpace(x));
 
             var fieldsWithInvalidXmlName = typeElement.DescendantsAndSelf()
-                .Where(x => x.Name.LocalName == "attr")
+                .Where(x => x.Name.LocalName == "attr" && x.Parent == typeElement)
                 .Select(x =>
                 {
                     var defaultType = !string.IsNullOrWhiteSpace(x.Value) ? "string" : "boolean";
@@ -108,7 +108,7 @@ namespace QuestScript.Interpreter
                 .Where(x => !string.IsNullOrWhiteSpace(x.Name));
 
             var fields = typeElement.DescendantsAndSelf()
-                .Where(x => x.Name.LocalName != "inherit" && x.Name.LocalName != "attr" && x.Name.LocalName != "elementType")
+                .Where(x => x.Name.LocalName != "inherit" && x.Name.LocalName != "attr" && x.Name.LocalName != "elementType" && x.Parent == typeElement)                
                 .Select(x =>
                 {
                     var name = x.Name.LocalName;
@@ -146,7 +146,6 @@ namespace QuestScript.Interpreter
         //for example, in the statement "x = foo", the "foo" may be a variable, object or a function
         private void DisambiguateFunctionDefinitions()
         {
-            
         }
 
         public HashSet<string> IncludeReferences { get; } = new HashSet<string>();
