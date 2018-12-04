@@ -10,7 +10,7 @@ using System.Collections.Generic;
 
 @lexer::members{
 private bool _isInsideSwitch => SwitchStates.Count > 0;
-
+private bool _isCaseOrDefaultEncountered; //handle cases where case/default are used without code blocks
 public class SwitchState
 {
 	public int BracerIndentation;
@@ -62,7 +62,7 @@ switchCaseStatement:
 		defaultContext = defaultStatement?
 	RightCurly;
 
-caseStatement : Case LeftParen caseFirstCondition = expression (',' caseOtherConditions += expression)* RightParen code = statement;
+caseStatement : Case LeftParen caseFirstCondition = literal (',' caseOtherConditions += literal)* RightParen code = statement;
 defaultStatement : Default code = statement;
 
 returnStatement: 'return' (LeftParen expression? RightParen)?;
@@ -260,11 +260,10 @@ CDataEnd: ']]>' -> skip;
 Whitespace: (' '|'\t') -> skip;
 Comment: '/*' .*? '*/' -> channel(HIDDEN);
 LineComment: '//' ~[\r\n]* -> channel(HIDDEN);
-Newline: '\r'? '\n' -> skip;
-
+Newline: '\r'? '\n'  { _isCaseOrDefaultEncountered = false; } -> skip;
 
 Switch: 'switch' { SwitchStates.Push(new SwitchState()); };
-Case: { _isInsideSwitch && !SwitchStates.Peek().IsInsideCodeBlock }? 'case';
-Default: { _isInsideSwitch && !SwitchStates.Peek().IsInsideCodeBlock }? 'default';
+Case: { _isInsideSwitch && (!SwitchStates.Peek().IsInsideCodeBlock && !_isCaseOrDefaultEncountered) }? 'case' {_isCaseOrDefaultEncountered = true; };
+Default: { _isInsideSwitch && (!SwitchStates.Peek().IsInsideCodeBlock && !_isCaseOrDefaultEncountered) }? 'default' { _isCaseOrDefaultEncountered = true; };
 
 Identifier: (Letter | '_') (Letter | Digit | '_')*;

@@ -15,11 +15,15 @@ namespace QuestScript.Tryouts
                 x = default
                 switch(x)
                 {
-                    case(y)
+                    case(""aaa"")
                     {
                         switch(z)
                         {
-                            case(abc) { default = 123 }
+                            case(123) 
+                            { 
+                                default = case 
+                                case = default
+                            }
                         }
                     }
                 }
