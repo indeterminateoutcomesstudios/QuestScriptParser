@@ -14,6 +14,12 @@ namespace QuestScript.Interpreter.Extensions
             LazyTypeAccessor = TypeAccessor.Create(typeof(Lazy<object>));
         }
 
+        public static void ForEach<T>(this IEnumerable<T> collection, Action<T> action)
+        {
+            foreach (var item in collection)
+                action(item);
+        }
+
         public static string CleanTokenArtifacts(this string str)
         {
             return str.Replace("\"", string.Empty);

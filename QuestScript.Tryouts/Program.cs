@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using Antlr4.Runtime;
 using QuestScript.Interpreter;
-using QuestScript.Parser;
 
 namespace QuestScript.Tryouts
 {

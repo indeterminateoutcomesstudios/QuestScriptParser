@@ -25,8 +25,7 @@ namespace QuestScript.Interpreter
 
         private readonly List<FunctionDefinition> _functionDefinitions = new List<FunctionDefinition>();
 
-        private readonly Dictionary<string, HashSet<string>> _functionReferences =
-            new Dictionary<string, HashSet<string>>();
+        private readonly Graph<string> _functionReferenceGraph = new Graph<string>(StringComparer.InvariantCultureIgnoreCase);
 
         private readonly XDocument _gameFile;
         private readonly FunctionReferencesBuilder _referenceBuilder = new FunctionReferencesBuilder();
@@ -50,12 +49,12 @@ namespace QuestScript.Interpreter
                 throw new ArgumentException("ASLX game file should not be empty...", nameof(questFile));
 
             InferFileType();
-            ProcessReferences();
+            ProcessIncludeReferences();
             ProcessFunctionDefinitions();
         }
 
         public HashSet<IFunction> Functions { get; } = new HashSet<IFunction>();
-        public HashSet<string> References { get; } = new HashSet<string>();
+        public HashSet<string> IncludeReferences { get; } = new HashSet<string>();
 
         public HashSet<BaseInterpreterException> InterpreterErrors { get; } = new HashSet<BaseInterpreterException>();
 
@@ -70,13 +69,13 @@ namespace QuestScript.Interpreter
                 ProcessFunction(functionElement);
         }
 
-        private void ProcessReferences()
+        private void ProcessIncludeReferences()
         {
             foreach (var element in (_gameFile.Root?.Elements("include") ?? Enumerable.Empty<XElement>())
                 .Where(el => el.HasAttributes && el.FirstAttribute.Name == "ref"))
             {
                 var library = element.Attribute("ref")?.Value;
-                References.Add(library);
+                IncludeReferences.Add(library);
 
                 if (!AlreadyLoadedFiles.Contains(library))
                 {
@@ -123,7 +122,8 @@ namespace QuestScript.Interpreter
 
             var includeLibraryResolver = new GameObjectResolver(libraryPath, AlreadyLoadedFiles);           
 
-            foreach (var reference in includeLibraryResolver.References) ProcessIncludedLibraryAndMerge(reference);
+            foreach (var reference in includeLibraryResolver.IncludeReferences) 
+                ProcessIncludedLibraryAndMerge(reference);
 
             MergeWith(includeLibraryResolver);
             _currentFile.Pop();
@@ -134,6 +134,8 @@ namespace QuestScript.Interpreter
             _functionDefinitions.AddRange(otherVisitor._functionDefinitions);
             foreach (var filePath in otherVisitor.AlreadyLoadedFiles) //do not load the same files twice...
                 AlreadyLoadedFiles.Add(filePath);
+
+            _functionReferenceGraph.MergeWith(otherVisitor._functionReferenceGraph);
 
             //TODO: add here other stuff that the visitor parses
         }
@@ -176,10 +178,7 @@ namespace QuestScript.Interpreter
 
             ScriptLexer.SetInputStream(new AntlrInputStream(newDefinition.Implementation));
             ScriptParser.SetInputStream(new CommonTokenStream(ScriptLexer));
-
-            ScriptParser.RemoveErrorListeners();
-            ScriptParser.AddErrorListener(new ConsoleErrorListener<IToken>());
-
+            
             var key = _currentFile.Count > 0 ? _currentFile.Peek() : "root";
             if (!ParserErrors.TryGetValue(key, out var errors))
             {
@@ -187,17 +186,15 @@ namespace QuestScript.Interpreter
                 ParserErrors.Add(key, errors);
             }
 
-            ScriptParser.AddErrorListener(new ParseErrorGatherer(errors));
+            var errorListener = new ParseErrorGatherer(errors);
+            ScriptParser.AddErrorListener(errorListener);
 
             var parseTree = ScriptParser.script();
+         
+            ScriptParser.RemoveErrorListener(errorListener);
 
-            if (errors.Count > 0)
-            {            
-                Debugger.Break();
-            }
-
+            _functionReferenceGraph.Connect(newDefinition.Name, _referenceBuilder.Visit(parseTree));
             _referenceBuilder.Reset();
-            _functionReferences.Add(newDefinition.Name, _referenceBuilder.Visit(parseTree));
         }
 
         private static void ThrowMissingAttribute(XElement element, string attribute)

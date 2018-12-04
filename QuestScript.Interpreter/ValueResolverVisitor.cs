@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using Antlr4.Runtime;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using QuestScript.Interpreter.Exceptions;
 using QuestScript.Interpreter.Extensions;
 using QuestScript.Interpreter.Helpers;
