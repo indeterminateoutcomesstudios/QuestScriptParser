@@ -12,7 +12,7 @@ namespace QuestScript.Interpreter.Extensions
         static UtilExtensions()
         {
             LazyTypeAccessor = TypeAccessor.Create(typeof(Lazy<object>));
-        }
+        }     
 
         public static void ForEach<T>(this IEnumerable<T> collection, Action<T> action)
         {

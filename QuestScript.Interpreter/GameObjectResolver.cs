@@ -26,8 +26,10 @@ namespace QuestScript.Interpreter
         private readonly List<FunctionDefinition> _functionDefinitions = new List<FunctionDefinition>();
 
         private readonly Graph<string> _functionReferenceGraph = new Graph<string>(StringComparer.InvariantCultureIgnoreCase);
+        private readonly Graph<ObjectTypeDefinition> _typeInheritanceGraph = new Graph<ObjectTypeDefinition>();
 
         private readonly XDocument _gameFile;
+        
         private readonly FunctionReferencesBuilder _referenceBuilder = new FunctionReferencesBuilder();
 
         internal readonly HashSet<string> AlreadyLoadedFiles;
@@ -37,6 +39,7 @@ namespace QuestScript.Interpreter
         {
             QuestCoreLibrariesPath = Path.Combine(EnvironmentUtil.GetQuestInstallationPath(), "Core");
             QuestLanguageLibrariesPath = Path.Combine(QuestCoreLibrariesPath, "Languages");
+            ErrorListener = new ParseErrorGatherer();
             ScriptParser.AddErrorListener(ErrorListener);
         }
 
@@ -53,9 +56,99 @@ namespace QuestScript.Interpreter
             InferFileType();
             ProcessIncludeReferences();
             ProcessFunctionDefinitions();
+            ProcessTypeDefinitions();
+
+            ProcessObjectDefinitions();
+
+            DisambiguateFunctionDefinitions();
         }
 
-        public HashSet<IFunction> Functions { get; } = new HashSet<IFunction>();
+        private void ProcessTypeDefinitions()
+        {
+            foreach (var objectElement in _gameFile.Root?.Elements("type") ?? Enumerable.Empty<XElement>())
+            {
+                var objectTypeDefinition = ParseType(objectElement);
+                _typeInheritanceGraph.AddVertex(objectTypeDefinition);
+            }
+
+            foreach (var vertex in _typeInheritanceGraph)
+            {
+                #if DEBUG
+                foreach (var field in vertex.Fields)
+                {
+                    //precaution, just in case, should never throw
+                    if(field.Type == ObjectType.Unknown)
+                        throw new InvalidDataException($"Failed to recognize type of field with name = '{field.Name}', in object '{vertex.Name}'");
+                }
+                #endif
+
+                var inheritsFromTypeDefinitions =
+                    _typeInheritanceGraph.Where(x => vertex.InheritsFrom.Contains(x.Name));
+                _typeInheritanceGraph.Connect(vertex, inheritsFromTypeDefinitions);
+            }
+        }
+
+        public ObjectTypeDefinition ParseType(XElement typeElement)
+        {
+            var typeName = typeElement.Attribute("name")?.Value ?? throw new InvalidDataException($"I see type definition without a name, this is invalid ASLX markup. ({typeElement})");
+            var inheritsFrom = typeElement.DescendantsAndSelf()
+                .Where(x => x.Name.LocalName == "inherit")
+                .Select(x => x.Attribute("name")?.Value)
+                .Where(x => !string.IsNullOrWhiteSpace(x));
+
+            var fieldsWithInvalidXmlName = typeElement.DescendantsAndSelf()
+                .Where(x => x.Name.LocalName == "attr")
+                .Select(x =>
+                {
+                    var defaultType = !string.IsNullOrWhiteSpace(x.Value) ? "string" : "boolean";
+                    return TypeUtil.TryParse(x.Attribute("type")?.Value ?? defaultType, out var convertedType)
+                            ? new Field(x.Attribute("name")?.Value, convertedType)
+                            : new Field(x.Attribute("name")?.Value, ObjectType.Unknown);
+                })
+                .Where(x => !string.IsNullOrWhiteSpace(x.Name));
+
+            var fields = typeElement.DescendantsAndSelf()
+                .Where(x => x.Name.LocalName != "inherit" && x.Name.LocalName != "attr" && x.Name.LocalName != "elementType")
+                .Select(x =>
+                {
+                    var name = x.Name.LocalName;
+                    var typeAsString = x.Attribute("type")?.Value ?? "string";
+                    return TypeUtil.TryParse(typeAsString, out var type) ? 
+                        new Field(name, type) : 
+                        new Field(name, ObjectType.Unknown);
+                });
+
+            return new ObjectTypeDefinition(typeName,
+                new HashSet<Field>(fields.Union(fieldsWithInvalidXmlName)), 
+                new HashSet<string>(inheritsFrom));
+        }
+
+        private void ProcessObjectDefinitions()
+        {
+            foreach (var objectElement in _gameFile.Root?.Elements("object") ?? Enumerable.Empty<XElement>())
+            {
+                ParseObject(objectElement);
+            }
+        }
+
+        private void ParseObject(XElement @object)
+        {
+            var name = @object.Attribute("name")?.Value ?? throw new InvalidDataException($"I see object definition without a name, this is invalid ASLX markup. ({@object})");
+            var inheritsFrom = @object.DescendantsAndSelf()
+                .Where(x => x.Name == "inherit")
+                .Select(x => x.Attribute("name")?.Value)
+                .Where(x => !string.IsNullOrWhiteSpace(x));
+
+            
+        }
+
+        //due to ambiguous Quest scripting syntax, it is possible to have false positives on functions. 
+        //for example, in the statement "x = foo", the "foo" may be a variable, object or a function
+        private void DisambiguateFunctionDefinitions()
+        {
+            
+        }
+
         public HashSet<string> IncludeReferences { get; } = new HashSet<string>();
 
         public HashSet<BaseInterpreterException> InterpreterErrors { get; } = new HashSet<BaseInterpreterException>();
@@ -138,6 +231,7 @@ namespace QuestScript.Interpreter
                 AlreadyLoadedFiles.Add(filePath);
 
             _functionReferenceGraph.MergeWith(otherVisitor._functionReferenceGraph);
+            _typeInheritanceGraph.MergeWith(otherVisitor._typeInheritanceGraph);
 
             //TODO: add here other stuff that the visitor parses
         }

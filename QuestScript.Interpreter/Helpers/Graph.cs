@@ -1,11 +1,13 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using QuestScript.Interpreter.Extensions;
 
 namespace QuestScript.Interpreter.Helpers
 {
     //simple graph implementation for internal purposes
-    public class Graph<TData> where TData : IEquatable<TData>
+    public class Graph<TData> : IEnumerable<TData>
+        where TData : IEquatable<TData>
     {             
         private readonly Dictionary<TData, HashSet<TData>> _adjacencyList = new Dictionary<TData, HashSet<TData>>();
         private readonly IEqualityComparer<TData> _equalityComparer;
@@ -15,10 +17,16 @@ namespace QuestScript.Interpreter.Helpers
             _equalityComparer = equalityComparer;
         }
 
-        public override string ToString()
+        public void ForEach(Action<(TData Vertex, IReadOnlyCollection<TData> AdjacentVertices)> action)
         {
-            return $"Graph<{typeof(TData).Name}> (Count = {_adjacencyList.Count})";
+            foreach (var item in _adjacencyList)
+                action((item.Key, item.Value));
         }
+
+        public IEnumerator<TData> GetEnumerator() => _adjacencyList.Keys.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public override string ToString() => $"Graph<{typeof(TData).Name}> (Count = {_adjacencyList.Count})";
 
         public void MergeWith(Graph<TData> otherGraph)
         {

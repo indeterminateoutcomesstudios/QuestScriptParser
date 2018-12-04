@@ -30,6 +30,8 @@ namespace QuestScript.Interpreter.Helpers
             {ObjectType.Integer, typeof(int)},
             {ObjectType.String, typeof(string)},
             {ObjectType.List, typeof(ArrayList)},
+            {ObjectType.StringList, typeof(List<string>)},
+            {ObjectType.ObjectList, typeof(List<object>)},
             {ObjectType.Void, typeof(void)}
         };
 

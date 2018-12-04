@@ -10,7 +10,7 @@ namespace QuestScript.Tryouts
         private static void Main(string[] args)
         {
             var sw = Stopwatch.StartNew();
-            var gameObjectResolver = new GameObjectResolver(@"C:\Users\Admin\Documents\Quest Games\BasicNeedsLib\TestGame.aslx");
+            var gameObjectResolver = new GameObjectResolver(@"C:\Users\Admin\Documents\Quest Games\OpenD6 Fantasy\OpenD6 Fantasy.aslx");
             Console.WriteLine(sw.Elapsed);
             Console.ReadKey();
         }

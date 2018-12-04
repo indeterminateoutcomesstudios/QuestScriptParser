@@ -1,4 +1,5 @@
 ﻿using System;
+// ReSharper disable StringLiteralTypo
 
 namespace QuestScript.Interpreter.ScriptElements
 {
@@ -23,8 +24,11 @@ namespace QuestScript.Interpreter.ScriptElements
         Object,
         Script,
         Boolean,
-        ObjectList,
+        ObjectList,        
         StringList,
+        SimpleStringList,
+        ListExtend,
+        SimplePattern,
         List,
         Dictionary,
         StringDictionary,

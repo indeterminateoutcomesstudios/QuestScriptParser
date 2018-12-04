@@ -10,7 +10,7 @@ namespace QuestScript.Interpreter.InterpreterElements
 
         public Environment Parent;
         public List<Variable> LocalVariables { get; } = new List<Variable>();
-        public List<IObjectInstance> LocalObjects { get; } = new List<IObjectInstance>();
+        //public List<IObjectInstance> LocalObjects { get; } = new List<IObjectInstance>();
 
         public List<ParserRuleContext> Statements { get; } = new List<ParserRuleContext>();
         public List<Environment> Children { get; } = new List<Environment>();
