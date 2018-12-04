@@ -80,7 +80,6 @@ namespace QuestScript.Interpreter
 
                 if (!AlreadyLoadedFiles.Contains(library))
                 {
-                    Console.WriteLine(library);
                     AlreadyLoadedFiles.Add(library);
                     ProcessIncludedLibraryAndMerge(library);
                 }

@@ -53,7 +53,7 @@ statement
 	|	{ _input.La(1) == QuestScriptLexer.PlusPlus || _input.La(1) == QuestScriptLexer.MinusMinus}? postfixUnaryStatement
 	|   memberMethodStatement
     ;
-
+ 
 switchCaseStatement:
 	Switch LeftParen switchConditionStatement = expression RightParen
 	LeftCurly
