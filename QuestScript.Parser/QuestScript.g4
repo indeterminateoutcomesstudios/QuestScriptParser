@@ -4,10 +4,21 @@ grammar QuestScript;
 using System;
 }
 
+@lexer::header{
+using System.Collections.Generic;
+}
+
 @lexer::members{
-private bool _isInsideSwitch = false;
-private int _switchBracerIndentation = 0;
-private bool _isInsideSwitchCodeBlock = false;
+private bool _isInsideSwitch => SwitchStates.Count > 0;
+
+public class SwitchState
+{
+	public int BracerIndentation;
+	public bool IsInsideCodeBlock;
+}
+
+public readonly Stack<SwitchState> SwitchStates = new Stack<SwitchState>();
+
 }
 
 @parser::members{
@@ -51,7 +62,7 @@ switchCaseStatement:
 		defaultContext = defaultStatement?
 	RightCurly;
 
-caseStatement : Case LeftParen caseFirstValue = literal (',' caseOtherValues += literal)* RightParen code = statement;
+caseStatement : Case LeftParen caseFirstCondition = expression (',' caseOtherConditions += expression)* RightParen code = statement;
 defaultStatement : Default code = statement;
 
 returnStatement: 'return' (LeftParen expression? RightParen)?;
@@ -68,7 +79,6 @@ iterationStatement
 							  (',' step = expression)?
 			  RightParen code = statement                                   #ForStatement
     ;
-
 
 ifStatement:
     'if' LeftParen condition = expression RightParen
@@ -174,11 +184,12 @@ LeftCurly: '{'
 { 
 	if (_isInsideSwitch) 
 	{ 
-		if(_switchBracerIndentation >= 1)
+		var currentState = SwitchStates.Peek();
+		if(currentState.BracerIndentation >= 1)
 		{
-			_isInsideSwitchCodeBlock = true; 
+			currentState.IsInsideCodeBlock = true; 
 		}
-		_switchBracerIndentation++; 
+		currentState.BracerIndentation++; 
 	}
 };
 
@@ -186,13 +197,14 @@ RightCurly: '}'
 { 
 	if (_isInsideSwitch) 
 	{ 
-		if(_switchBracerIndentation >= 1)
+		var currentState = SwitchStates.Peek();
+		if(currentState.BracerIndentation >= 1)
 		{
-			_isInsideSwitchCodeBlock = false; 
+			currentState.IsInsideCodeBlock = false; 
 		}
-		_switchBracerIndentation--; 
-		if(_switchBracerIndentation == 0) 
-			_isInsideSwitch = false; 
+
+		currentState.BracerIndentation--; 
+		SwitchStates.Pop();
 	} 
 };
 
@@ -251,8 +263,8 @@ LineComment: '//' ~[\r\n]* -> channel(HIDDEN);
 Newline: '\r'? '\n' -> skip;
 
 
-Switch: 'switch' { _isInsideSwitch = true; };
-Case: { _isInsideSwitch && !_isInsideSwitchCodeBlock }? 'case';
-Default: { _isInsideSwitch && !_isInsideSwitchCodeBlock }? 'default';
+Switch: 'switch' { SwitchStates.Push(new SwitchState()); };
+Case: { _isInsideSwitch && !SwitchStates.Peek().IsInsideCodeBlock }? 'case';
+Default: { _isInsideSwitch && !SwitchStates.Peek().IsInsideCodeBlock }? 'default';
 
 Identifier: (Letter | '_') (Letter | Digit | '_')*;
