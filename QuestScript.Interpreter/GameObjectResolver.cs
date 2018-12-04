@@ -31,11 +31,13 @@ namespace QuestScript.Interpreter
         private readonly FunctionReferencesBuilder _referenceBuilder = new FunctionReferencesBuilder();
 
         internal readonly HashSet<string> AlreadyLoadedFiles;
+        protected internal static ParseErrorGatherer ErrorListener;
 
         static GameObjectResolver()
         {
             QuestCoreLibrariesPath = Path.Combine(EnvironmentUtil.GetQuestInstallationPath(), "Core");
             QuestLanguageLibrariesPath = Path.Combine(QuestCoreLibrariesPath, "Languages");
+            ScriptParser.AddErrorListener(ErrorListener);
         }
 
         public GameObjectResolver(string questFile, HashSet<string> alreadyLoadedFiles = null)
@@ -186,12 +188,10 @@ namespace QuestScript.Interpreter
                 ParserErrors.Add(key, errors);
             }
 
-            var errorListener = new ParseErrorGatherer(errors);
-            ScriptParser.AddErrorListener(errorListener);
-
+            ErrorListener.Errors = errors;
             var parseTree = ScriptParser.script();
          
-            ScriptParser.RemoveErrorListener(errorListener);
+            ScriptParser.RemoveErrorListener(ErrorListener);
 
             _functionReferenceGraph.Connect(newDefinition.Name, _referenceBuilder.Visit(parseTree));
             _referenceBuilder.Reset();

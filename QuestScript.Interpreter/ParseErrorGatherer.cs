@@ -8,19 +8,14 @@ using QuestScript.Interpreter.Exceptions;
 namespace QuestScript.Interpreter
 {
     public class ParseErrorGatherer : BaseErrorListener
-    {
-        public ParseErrorGatherer(HashSet<BaseParserErrorException> errors)
-        {
-            Errors = errors ?? new HashSet<BaseParserErrorException>();
-        }
-
-        public HashSet<BaseParserErrorException> Errors { get; }
+    {       
+        public HashSet<BaseParserErrorException> Errors { get; set; }
 
         public override void SyntaxError(IRecognizer recognizer, IToken offendingSymbol, int line,
             int charPositionInLine, string msg,
             RecognitionException e)
         {
-            Errors.Add(new SyntaxErrorException(
+            Errors?.Add(new SyntaxErrorException(
                 $"Syntax error while parsing '{offendingSymbol.Text}'. (line:{line}, character position:{charPositionInLine})",
                 e));
         }
@@ -30,7 +25,7 @@ namespace QuestScript.Interpreter
             ATNConfigSet configs)
         {
             //TODO : make sure that 'dfa.ToLexerString()' has meaningful and expected output. Not sure about that...            
-            Errors.Add(new SyntaxErrorException(
+            Errors?.Add(new SyntaxErrorException(
                 $"Ambiguity error while parsing '{dfa.ToLexerString()}'. (start index: {startIndex}, stop index: {stopIndex})"));
         }
     }
