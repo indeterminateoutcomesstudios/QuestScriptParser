@@ -193,12 +193,7 @@ namespace QuestScript.Interpreter
             var parseTree = ScriptParser.script();
 
             if (errors.Count > 0)
-            {
-                var firstException = errors.First();
-                var ex = firstException.InnerException as InputMismatchException;
-                var ctx = ex.Context.GetText();
-                var offendingToken = ex.OffendingToken.Text;
-                
+            {            
                 Debugger.Break();
             }
 

@@ -12,21 +12,11 @@ namespace QuestScript.Tryouts
         private static void Main(string[] args)
         {
             var parser = new QuestScriptParser(new CommonTokenStream(new QuestScriptLexer(new AntlrInputStream(@"
-                x = default
-                switch(x)
-                {
-                    case(""aaa"")
-                    {
-                        switch(z)
-                        {
-                            case(123) 
-                            { 
-                                default = case 
-                                case = default
-                            }
-                        }
-                    }
-                }
+      switch (x) {
+        case(""a"")  { }
+        case(""b"")  { }
+        default {}
+      }
             "))));
             var tree = parser.script();
             //Console.WriteLine(tree.ToStringTree(parser));

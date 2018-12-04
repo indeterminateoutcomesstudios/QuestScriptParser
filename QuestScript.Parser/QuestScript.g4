@@ -10,7 +10,6 @@ using System.Collections.Generic;
 
 @lexer::members{
 private bool _isInsideSwitch => SwitchStates.Count > 0;
-private bool _isCaseOrDefaultEncountered; //handle cases where case/default are used without code blocks
 public class SwitchState
 {
 	public int BracerIndentation;
@@ -204,7 +203,8 @@ RightCurly: '}'
 		}
 
 		currentState.BracerIndentation--; 
-		SwitchStates.Pop();
+		if(currentState.BracerIndentation == 0)
+			SwitchStates.Pop();
 	} 
 };
 
@@ -260,10 +260,10 @@ CDataEnd: ']]>' -> skip;
 Whitespace: (' '|'\t') -> skip;
 Comment: '/*' .*? '*/' -> channel(HIDDEN);
 LineComment: '//' ~[\r\n]* -> channel(HIDDEN);
-Newline: '\r'? '\n'  { _isCaseOrDefaultEncountered = false; } -> skip;
+Newline: '\r'? '\n' -> skip;
 
 Switch: 'switch' { SwitchStates.Push(new SwitchState()); };
-Case: { _isInsideSwitch && (!SwitchStates.Peek().IsInsideCodeBlock && !_isCaseOrDefaultEncountered) }? 'case' {_isCaseOrDefaultEncountered = true; };
-Default: { _isInsideSwitch && (!SwitchStates.Peek().IsInsideCodeBlock && !_isCaseOrDefaultEncountered) }? 'default' { _isCaseOrDefaultEncountered = true; };
+Case: { _isInsideSwitch && !SwitchStates.Peek().IsInsideCodeBlock }? 'case';
+Default: { _isInsideSwitch && !SwitchStates.Peek().IsInsideCodeBlock }? 'default';
 
 Identifier: (Letter | '_') (Letter | Digit | '_')*;
