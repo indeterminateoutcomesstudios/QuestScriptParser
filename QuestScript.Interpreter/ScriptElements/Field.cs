@@ -5,18 +5,17 @@ namespace QuestScript.Interpreter.ScriptElements
     public class Field : IEquatable<Field>
     {
         public readonly string Name;
-        public readonly ObjectType Type;
+        public readonly ObjectType Type; //note: if this is ObjectType.Object, the Name is the "id" of the object instance
+        public readonly string OriginalType;
 
-        public Field(string name, ObjectType type)
+        public Field(string name, ObjectType type, string originalType)
         {
             Name = name;
             Type = type;
+            OriginalType = originalType;
         }
 
-        public override string ToString()
-        {
-            return $"{nameof(Name)}: {Name}, {nameof(Type)}: {Type}";
-        }
+        public override string ToString() => $"{nameof(Name)}: {Name}, {nameof(Type)}: {Type}";
 
         public bool Equals(Field other)
         {

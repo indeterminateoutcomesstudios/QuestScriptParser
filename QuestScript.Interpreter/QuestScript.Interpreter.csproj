@@ -190,10 +190,17 @@
     <Compile Include="Exceptions\BaseParserErrorException.cs" />
     <Compile Include="Exceptions\SyntaxErrorException.cs" />
     <Compile Include="FunctionReferencesBuilder.cs" />
+    <Compile Include="GameObjectParsers\DelegatesParser.cs" />
+    <Compile Include="GameObjectParsers\FunctionsParser.cs" />
+    <Compile Include="GameObjectParsers\ObjectParser.cs" />
+    <Compile Include="GameObjectParsers\ObjectTypeParser.cs" />
     <Compile Include="GameObjectResolver.cs" />
     <Compile Include="Helpers\Graph.cs" />
     <Compile Include="ParseErrorGatherer.cs" />
     <Compile Include="ScriptElements\Field.cs" />
+    <Compile Include="ScriptElements\FunctionDefinition.cs" />
+    <Compile Include="ScriptElements\MethodDefinition.cs" />
+    <Compile Include="ScriptElements\ObjectDefinition.cs" />
     <Compile Include="ScriptElements\ObjectTypeDefinition.cs" />
     <Compile Include="ScriptEnvironment.cs" />
     <Compile Include="Extensions\EnvironmentExtensions.cs" />

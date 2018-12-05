@@ -26,6 +26,7 @@ namespace QuestScript.Interpreter.ScriptElements
         Boolean,
         ObjectList,        
         StringList,
+        Delegate,
         SimpleStringList,
         ListExtend,
         SimplePattern,
