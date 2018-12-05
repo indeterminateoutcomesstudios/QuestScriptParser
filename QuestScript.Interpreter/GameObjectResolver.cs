@@ -9,8 +9,8 @@ using QuestScript.Interpreter.Exceptions;
 using QuestScript.Interpreter.Extensions;
 using QuestScript.Interpreter.GameObjectParsers;
 using QuestScript.Interpreter.Helpers;
-using QuestScript.Interpreter.ScriptElements;
 using QuestScript.Parser;
+using QuestScript.Parser.ScriptElements;
 
 // ReSharper disable UnusedMember.Global
 

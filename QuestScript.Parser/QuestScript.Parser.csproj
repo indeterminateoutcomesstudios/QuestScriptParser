@@ -195,6 +195,12 @@
     <Compile Include="QuestScript.g4.parser.cs">
       <DependentUpon>QuestScript.g4</DependentUpon>
     </Compile>
+    <Compile Include="ScriptElements\Field.cs" />
+    <Compile Include="ScriptElements\FunctionDefinition.cs" />
+    <Compile Include="ScriptElements\MethodDefinition.cs" />
+    <Compile Include="ScriptElements\ObjectDefinition.cs" />
+    <Compile Include="ScriptElements\ObjectType.cs" />
+    <Compile Include="ScriptElements\ObjectTypeDefinition.cs" />
   </ItemGroup>
   <ItemGroup>
     <Antlr4 Include="QuestScript.g4">

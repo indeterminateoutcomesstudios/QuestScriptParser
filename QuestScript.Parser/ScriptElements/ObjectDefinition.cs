@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace QuestScript.Interpreter.ScriptElements
+namespace QuestScript.Parser.ScriptElements
 {
     public class ObjectDefinition : IEquatable<ObjectDefinition>
     {

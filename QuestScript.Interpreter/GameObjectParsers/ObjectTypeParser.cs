@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 using QuestScript.Interpreter.Helpers;
-using QuestScript.Interpreter.ScriptElements;
+using QuestScript.Parser.ScriptElements;
 
 namespace QuestScript.Interpreter.GameObjectParsers
 {

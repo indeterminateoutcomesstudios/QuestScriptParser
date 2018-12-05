@@ -2,6 +2,7 @@ grammar QuestScript;
 
 @parser::header{
 using System;
+using QuestScript.Parser.ScriptElements;
 }
 
 @lexer::header{
@@ -20,20 +21,10 @@ public readonly Stack<SwitchState> SwitchStates = new Stack<SwitchState>();
 
 }
 
-@parser::members{
-public Dictionary<string,HashSet<string>> ObjectFields = new Dictionary<string,HashSet<string>>(StringComparer.InvariantCultureIgnoreCase);
-public Dictionary<string,(string name, HashSet<string> parameters)> ObjectMethods = new Dictionary<string,(string name, HashSet<string> parameters)>(StringComparer.InvariantCultureIgnoreCase);
-
-//value here is the parameters of the function
-public Dictionary<string,(HashSet<string> parameters, string returnType)> Functions = new Dictionary<string,(HashSet<string> parameters, string returnType)>(StringComparer.InvariantCultureIgnoreCase);
-
-
-private bool IsField(string instance, string fieldName)
+@parser::members
 {
-    var isObjectDefined = ObjectFields.TryGetValue(instance, out var fields);
-    return isObjectDefined && fields.Contains(fieldName);
-}
-
+    public Dictionary<string,FunctionDefinition> FunctionDefinitions;
+    public Dictionary<string, ObjectDefinition> ObjectDefinitions;
 }
 
 script: (statement)* EOF;
@@ -127,7 +118,7 @@ expression:
     |   Not expr = expression										#NotExpression
     |   left = expression And right = expression					#AndExpression
     |   left = expression Or right = expression						#OrExpression
-    |   val = expression 'in' source = expression                   #InExpression
+    |   val = expression 'in' source = expression                   #InExpression //return true if object exists in array
     ;
 
 rValue:

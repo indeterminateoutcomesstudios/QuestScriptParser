@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace QuestScript.Interpreter.ScriptElements
+namespace QuestScript.Parser.ScriptElements
 {
     public class Field : IEquatable<Field>
     {

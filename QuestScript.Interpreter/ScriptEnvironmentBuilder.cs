@@ -6,8 +6,8 @@ using QuestScript.Interpreter.Exceptions;
 using QuestScript.Interpreter.Extensions;
 using QuestScript.Interpreter.Helpers;
 using QuestScript.Interpreter.InterpreterElements;
-using QuestScript.Interpreter.ScriptElements;
 using QuestScript.Parser;
+using QuestScript.Parser.ScriptElements;
 using Environment = QuestScript.Interpreter.InterpreterElements.Environment;
 
 // ReSharper disable ArgumentsStyleLiteral

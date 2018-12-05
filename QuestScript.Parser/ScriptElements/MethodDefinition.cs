@@ -1,4 +1,4 @@
-﻿namespace QuestScript.Interpreter.ScriptElements
+﻿namespace QuestScript.Parser.ScriptElements
 {
     public class MethodDefinition : FunctionDefinition
     {

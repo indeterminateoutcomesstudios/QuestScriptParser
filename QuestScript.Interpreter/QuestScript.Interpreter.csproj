@@ -197,11 +197,6 @@
     <Compile Include="GameObjectResolver.cs" />
     <Compile Include="Helpers\Graph.cs" />
     <Compile Include="ParseErrorGatherer.cs" />
-    <Compile Include="ScriptElements\Field.cs" />
-    <Compile Include="ScriptElements\FunctionDefinition.cs" />
-    <Compile Include="ScriptElements\MethodDefinition.cs" />
-    <Compile Include="ScriptElements\ObjectDefinition.cs" />
-    <Compile Include="ScriptElements\ObjectTypeDefinition.cs" />
     <Compile Include="ScriptEnvironment.cs" />
     <Compile Include="Extensions\EnvironmentExtensions.cs" />
     <Compile Include="Exceptions\DivisionByZeroException.cs" />
@@ -217,7 +212,6 @@
     <Compile Include="Script.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="CodeFormattingVisitor.cs" />
-    <Compile Include="ScriptElements\ObjectType.cs" />
     <Compile Include="TypeInferenceVisitor.cs" />
     <Compile Include="Extensions\UtilExtensions.cs" />
     <Compile Include="Exceptions\BaseInterpreterException.cs" />

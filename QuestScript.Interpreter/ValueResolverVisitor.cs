@@ -5,8 +5,8 @@ using Antlr4.Runtime;
 using QuestScript.Interpreter.Exceptions;
 using QuestScript.Interpreter.Extensions;
 using QuestScript.Interpreter.Helpers;
-using QuestScript.Interpreter.ScriptElements;
 using QuestScript.Parser;
+using QuestScript.Parser.ScriptElements;
 
 // ReSharper disable UncatchableException
 

@@ -1,5 +1,5 @@
 ﻿using Antlr4.Runtime;
-using QuestScript.Interpreter.ScriptElements;
+using QuestScript.Parser.ScriptElements;
 
 namespace QuestScript.Interpreter.Exceptions
 {

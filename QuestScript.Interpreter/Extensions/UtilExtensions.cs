@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using FastMember;
-using QuestScript.Interpreter.ScriptElements;
+using QuestScript.Parser.ScriptElements;
 
 namespace QuestScript.Interpreter.Extensions
 {

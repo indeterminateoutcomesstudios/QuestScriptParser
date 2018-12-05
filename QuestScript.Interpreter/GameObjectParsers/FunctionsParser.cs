@@ -8,7 +8,7 @@ using System.Xml.Linq;
 using Antlr4.Runtime;
 using QuestScript.Interpreter.Exceptions;
 using QuestScript.Interpreter.Helpers;
-using QuestScript.Interpreter.ScriptElements;
+using QuestScript.Parser.ScriptElements;
 
 namespace QuestScript.Interpreter.GameObjectParsers
 {

@@ -1,7 +1,8 @@
 ﻿using System;
+
 // ReSharper disable StringLiteralTypo
 
-namespace QuestScript.Interpreter.ScriptElements
+namespace QuestScript.Parser.ScriptElements
 {
     [AttributeUsage(AttributeTargets.All)]
     public class AlternativeNameAttribute : Attribute

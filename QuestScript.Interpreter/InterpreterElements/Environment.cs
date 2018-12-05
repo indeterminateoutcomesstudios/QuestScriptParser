@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using Antlr4.Runtime;
-using QuestScript.Interpreter.ScriptElements;
 
 namespace QuestScript.Interpreter.InterpreterElements
 {
