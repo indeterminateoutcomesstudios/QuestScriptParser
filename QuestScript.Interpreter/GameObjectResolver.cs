@@ -43,6 +43,7 @@ namespace QuestScript.Interpreter
 
         private static int _recursionCount;
         private readonly string _filePath;
+        private bool _hasInitializedParserDefinitions;
 
         static GameObjectResolver()
         {
@@ -64,6 +65,15 @@ namespace QuestScript.Interpreter
 
             InferFileType();
 
+            if (!_hasInitializedParserDefinitions)
+            {
+                _hasInitializedParserDefinitions = true;
+
+                //as stuff is parsed, those will get updated and will help determining whether identifier is method, field, function or an object
+                ScriptParser.FunctionDefinitions = _functionDefinitions;
+                ScriptParser.ObjectDefinitions = _objectDefinitions;
+            }
+
             ProcessIncludeReferences();
 
             var functionParser = new FunctionsParser(this);
@@ -84,9 +94,8 @@ namespace QuestScript.Interpreter
             _objectDefinitions.MergeWith(objectParser.Parse(_gameFile));
 
             PostLoadInitialization();
-        }
+        }    
 
-        
         private void PostLoadInitialization()
         {
             //note: this function will run only once, after all include libraries were parsed

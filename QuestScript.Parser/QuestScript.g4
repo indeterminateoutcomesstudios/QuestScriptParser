@@ -25,6 +25,23 @@ public readonly Stack<SwitchState> SwitchStates = new Stack<SwitchState>();
 {
     public Dictionary<string,FunctionDefinition> FunctionDefinitions;
     public Dictionary<string, ObjectDefinition> ObjectDefinitions;
+
+    private bool IsFunction(string identifier) => FunctionDefinitions?.ContainsKey(identifier) ?? true; //sucks, but its safer to assume its a function
+    private bool IsObject(string identifier) => ObjectDefinitions?.ContainsKey(identifier) ?? false;
+
+	private bool IsField(string instance, string identifier)
+	{
+		ObjectDefinition definition = null;
+	    return (ObjectDefinitions?.TryGetValue(instance, out definition) ?? true) &&
+               (definition?.Fields.ContainsKey(identifier) ?? true);
+	}
+
+    private bool IsMethod(string instance, string identifier)
+    {
+        ObjectDefinition definition = null;
+        return (ObjectDefinitions?.TryGetValue(instance, out definition) ?? false) &&
+               (definition?.Methods.ContainsKey(identifier) ?? false);
+    }
 }
 
 script: (statement)* EOF;
