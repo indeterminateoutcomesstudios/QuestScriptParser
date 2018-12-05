@@ -45,7 +45,16 @@ namespace QuestScript.Interpreter.Helpers
 
         public void AddVertex(TData data) => _adjacencyList.Add(data, new HashSet<TData>());
         public bool HasVertex(TData data) => _adjacencyList.ContainsKey(data);
-        public void RemoveVertex(TData data) => _adjacencyList.Remove(data);
+
+        public void RemoveVertex(TData data)
+        {
+            if (!_adjacencyList.ContainsKey(data))
+                return; //prevent loop over adjacency list if not relevant
+
+            _adjacencyList.Remove(data);
+            foreach (var kvp in _adjacencyList)
+                kvp.Value.Remove(data);
+        }
 
         public void Connect(TData from, IEnumerable<TData> toCollection) => toCollection.ForEach(to => Connect(from, to));
 

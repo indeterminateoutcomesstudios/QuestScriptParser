@@ -77,6 +77,8 @@ namespace QuestScript.Interpreter
             var objectTypeParser = new ObjectTypeParser(_delegateDefinitions);
             _typeInheritanceGraph.MergeWith(objectTypeParser.Parse(_gameFile));
             _objectTypeDefinitions.MergeWith(_typeInheritanceGraph.ToDictionary(x => x.Name, x => x));
+            
+            BuildTypeInheritanceGraph();
 
             var objectParser = new ObjectParser(_delegateDefinitions,_typeInheritanceGraph, _objectTypeDefinitions);
             _objectDefinitions.MergeWith(objectParser.Parse(_gameFile));
@@ -85,21 +87,34 @@ namespace QuestScript.Interpreter
         }
 
         
-        //due to ambiguous Quest scripting syntax, it is possible to have false positives on functions. 
-        //for example, in the statement "x = foo", the "foo" may be a variable, object or a function
         private void PostLoadInitialization()
         {
             //note: this function will run only once, after all include libraries were parsed
             if (_recursionCount > 0)
                 return;
+
+            //due to ambiguous Quest scripting syntax, it is possible to have false positives on functions. 
+            //for example, in the statement "x = foo", the "foo" may be a variable, object or a function
+            foreach (var def in _objectDefinitions)
+            {
+                if (!_functionDefinitions.ContainsKey(def.Key)) 
+                    continue;
+                _functionDefinitions.Remove(def.Key);
+                _functionReferenceGraph.RemoveVertex(def.Key);
+            }
+        }
+
+        private void BuildTypeInheritanceGraph()
+        {
             foreach (var vertex in _typeInheritanceGraph)
             {
 #if DEBUG
                 foreach (var field in vertex.Fields)
                 {
                     //precaution, just in case, should never throw
-                    if(field.Type == ObjectType.Unknown)
-                        throw new InvalidDataException($"Failed to recognize type of field with name = '{field.Name}', in object '{vertex.Name}'");
+                    if (field.Type == ObjectType.Unknown)
+                        throw new InvalidDataException(
+                            $"Failed to recognize type of field with name = '{field.Name}', in object '{vertex.Name}'");
                 }
 #endif
 
