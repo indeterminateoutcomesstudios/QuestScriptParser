@@ -34,6 +34,8 @@ namespace QuestScript.Interpreter
         private readonly Dictionary<string, ObjectTypeDefinition> _objectTypeDefinitions = new Dictionary<string, ObjectTypeDefinition>();
 
         private readonly Dictionary<string, FunctionDefinition> _delegateDefinitions = new Dictionary<string, FunctionDefinition>();
+        
+        private readonly HashSet<string> _undefinedFunctions = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
 
         private readonly XDocument _gameFile;
         
@@ -77,14 +79,14 @@ namespace QuestScript.Interpreter
             var objectTypeParser = new ObjectTypeParser(_delegateDefinitions);
             _typeInheritanceGraph.MergeWith(objectTypeParser.Parse(_gameFile));
             _objectTypeDefinitions.MergeWith(_typeInheritanceGraph.ToDictionary(x => x.Name, x => x));
-            
+
             BuildTypeInheritanceGraph();
 
-            var objectParser = new ObjectParser(_delegateDefinitions,_typeInheritanceGraph, _objectTypeDefinitions);
+            var objectParser = new ObjectParser(_delegateDefinitions, _typeInheritanceGraph, _objectTypeDefinitions);
             _objectDefinitions.MergeWith(objectParser.Parse(_gameFile));
 
             PostLoadInitialization();
-        }    
+        }
 
         private void PostLoadInitialization()
         {
@@ -105,6 +107,17 @@ namespace QuestScript.Interpreter
             //as stuff is parsed, those will get updated and will help determining whether identifier is method, field, function or an object
             ScriptParser.FunctionDefinitions = _functionDefinitions;
             ScriptParser.ObjectDefinitions = _objectDefinitions;
+
+            //build function dependency list for each function
+            foreach (var kvp in _functionDefinitions)
+            {
+                kvp.Value.DependsOn = _functionReferenceGraph.Traverse(kvp.Key).ToArray();
+
+                //just in case, track undefined functions
+                foreach(var functionName in kvp.Value.DependsOn)
+                    if (_functionDefinitions.ContainsKey(functionName))
+                        _undefinedFunctions.Add(functionName);
+            }
         }
 
         private void BuildTypeInheritanceGraph()

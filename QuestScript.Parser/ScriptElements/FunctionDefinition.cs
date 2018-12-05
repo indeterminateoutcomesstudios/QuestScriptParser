@@ -7,6 +7,7 @@ namespace QuestScript.Parser.ScriptElements
         public readonly string Implementation;
         public readonly string Name;
         public readonly string[] Parameters;
+        public string[] DependsOn;
         public readonly ObjectType ReturnType;
 
         public FunctionDefinition(string name, string[] parameters, ObjectType returnType, string implementation)
