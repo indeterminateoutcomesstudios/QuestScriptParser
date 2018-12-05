@@ -43,7 +43,6 @@ namespace QuestScript.Interpreter
 
         private static int _recursionCount;
         private readonly string _filePath;
-        private bool _hasInitializedParserDefinitions;
 
         static GameObjectResolver()
         {
@@ -64,15 +63,6 @@ namespace QuestScript.Interpreter
                 throw new ArgumentException("ASLX game file should not be empty...", nameof(questFile));
 
             InferFileType();
-
-            if (!_hasInitializedParserDefinitions)
-            {
-                _hasInitializedParserDefinitions = true;
-
-                //as stuff is parsed, those will get updated and will help determining whether identifier is method, field, function or an object
-                ScriptParser.FunctionDefinitions = _functionDefinitions;
-                ScriptParser.ObjectDefinitions = _objectDefinitions;
-            }
 
             ProcessIncludeReferences();
 
@@ -111,6 +101,10 @@ namespace QuestScript.Interpreter
                 _functionDefinitions.Remove(def.Key);
                 _functionReferenceGraph.RemoveVertex(def.Key);
             }
+
+            //as stuff is parsed, those will get updated and will help determining whether identifier is method, field, function or an object
+            ScriptParser.FunctionDefinitions = _functionDefinitions;
+            ScriptParser.ObjectDefinitions = _objectDefinitions;
         }
 
         private void BuildTypeInheritanceGraph()
